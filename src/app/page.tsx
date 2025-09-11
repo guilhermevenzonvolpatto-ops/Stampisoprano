@@ -1,37 +1,87 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import Link from 'next/link';
 
-export default function HomePage() {
+'use client';
+
+import * as React from 'react';
+import { useRouter } from 'next/navigation';
+import { useApp } from '@/context/app-context';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { LogIn } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+export default function LoginPage() {
+  const { user, loginAs } = useApp();
+  const router = useRouter();
+  const { toast } = useToast();
+  const [loading, setLoading] = React.useState(false);
+  const [code, setCode] = React.useState('');
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!code) return;
+
+    setLoading(true);
+    const success = await loginAs(code);
+    setLoading(false);
+
+    if (success) {
+      router.push('/dashboard');
+    } else {
+      toast({
+        title: 'Login Failed',
+        description: 'Invalid user code provided.',
+        variant: 'destructive',
+      });
+      setCode('');
+    }
+  };
+  
+  // If user is already logged in, redirect to dashboard
+  React.useEffect(() => {
+    if (user) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
+
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)]">
-      <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold tracking-tight lg:text-5xl">
-          Benvenuto in Sopranostampi
-        </h1>
-        <p className="mt-4 text-lg text-muted-foreground">
-          La tua soluzione centralizzata per la gestione degli stampi.
-        </p>
-      </div>
-      <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Accesso Rapido</CardTitle>
-            <CardDescription>
-              Seleziona una sezione per iniziare.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button asChild className="w-full" size="lg">
-              <Link href="/dashboard">Vai alla Dashboard</Link>
+    <div className="flex min-h-[calc(100vh-10rem)] items-center justify-center bg-background">
+      <Card className="w-full max-w-sm">
+        <CardHeader className="text-center">
+          <CardTitle>Welcome</CardTitle>
+          <CardDescription>Enter your user code to log in to Mold Manager</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="user-code">User Code</Label>
+              <Input
+                id="user-code"
+                placeholder="e.g., guilhermevolp93"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                required
+              />
+            </div>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading}
+            >
+              <LogIn className="mr-2 h-4 w-4" />
+              {loading ? 'Logging in...' : 'Login'}
             </Button>
-             <Button asChild className="w-full" variant="secondary">
-              <Link href="/molds">Gestione Stampi</Link>
-            </Button>
-            <Button asChild className="w-full" variant="secondary">
-              <Link href="/components">Gestione Componenti</Link>
-            </Button>
-          </CardContent>
-        </Card>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

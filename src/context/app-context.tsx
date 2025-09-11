@@ -3,7 +3,7 @@
 
 import { getUser } from '@/lib/data';
 import type { User } from '@/lib/types';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
 
 type AppContextType = {
@@ -21,6 +21,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = React.useState<'en' | 'it'>('en');
   const [isLoading, setIsLoading] = React.useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   React.useEffect(() => {
     const activeUserCode = sessionStorage.getItem('activeUser');
@@ -28,19 +29,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
        getUser(activeUserCode)
         .then(setUser)
         .catch(() => {
-            // If user lookup fails, clear the bad session data and redirect to login
             sessionStorage.removeItem('activeUser');
             setUser(null);
-            router.push('/login');
+            router.push('/');
         })
         .finally(() => setIsLoading(false));
     } else {
        setIsLoading(false);
-       if (window.location.pathname !== '/login') {
-        router.push('/login');
+       // If not logged in and not on the root (login) page, redirect there.
+       if (pathname !== '/') {
+        router.push('/');
        }
     }
-  }, [router]);
+  }, [router, pathname]);
 
   const loginAs = async (userCode: string) => {
     setIsLoading(true);
@@ -58,13 +59,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     sessionStorage.setItem('activeUser', 'loggedOut');
     setUser(null);
-    router.push('/login');
+    router.push('/');
   };
 
   const value = { user, language, setLanguage, loginAs, logout };
   
+  // If we are loading authentication state, don't render children to avoid flickers
   if (isLoading) {
-    return null; // or a loading spinner
+    return null;
+  }
+  
+  // If not logged in and not on the login page, wait for redirect
+  if (!user && pathname !== '/') {
+    return null;
   }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
