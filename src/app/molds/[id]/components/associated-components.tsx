@@ -20,13 +20,16 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
+import { useApp } from '@/context/app-context';
+import { AdminButton } from '@/components/layout/admin-button';
 
 interface AssociatedComponentsProps {
   components: Component[];
 }
 
 export function AssociatedComponents({ components }: AssociatedComponentsProps) {
-  
+    const { user } = useApp();
+
   const getStatusClass = (status: string) => {
     switch (status) {
       case 'Attivo': return 'bg-green-100 text-green-800 hover:bg-green-100/80';
@@ -40,10 +43,10 @@ export function AssociatedComponents({ components }: AssociatedComponentsProps) 
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Associated Components</CardTitle>
-        <Button variant="outline" size="sm">
+        <AdminButton href="/components/new" variant="outline" size="sm">
             <PlusCircle className="mr-2 h-4 w-4" />
             Add Component
-        </Button>
+        </AdminButton>
       </CardHeader>
       <CardContent>
         {components.length > 0 ? (
@@ -54,25 +57,24 @@ export function AssociatedComponents({ components }: AssociatedComponentsProps) 
                 <TableHead>Description</TableHead>
                 <TableHead>Material</TableHead>
                 <TableHead>Status</TableHead>
+                 <TableHead><span className="sr-only">Actions</span></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {components.map((c) => (
                 <TableRow key={c.id}>
-                  <TableCell>
-                    <Link
-                      href={`/components/${c.id}`}
-                      className="font-medium hover:underline text-primary"
-                    >
-                      {c.codice}
-                    </Link>
-                  </TableCell>
+                  <TableCell className="font-medium">{c.codice}</TableCell>
                   <TableCell>{c.descrizione}</TableCell>
                   <TableCell>{c.materiale}</TableCell>
                   <TableCell>
                     <Badge variant="secondary" className={getStatusClass(c.stato)}>
                       {c.stato}
                     </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button asChild variant="outline" size="sm">
+                        <Link href={`/components/${c.id}`}>View</Link>
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

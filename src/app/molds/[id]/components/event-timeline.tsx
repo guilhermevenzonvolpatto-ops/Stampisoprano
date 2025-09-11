@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -16,6 +17,8 @@ import {
 import { EditEventSheet } from './edit-event-sheet';
 import { AddEventSheet } from './add-event-sheet';
 import { Badge } from '@/components/ui/badge';
+import { useApp } from '@/context/app-context';
+import { AdminButton } from '@/components/layout/admin-button';
 
 interface EventTimelineProps {
   moldId: string;
@@ -38,6 +41,7 @@ export function EventTimeline({ moldId }: EventTimelineProps) {
   const [events, setEvents] = React.useState<MoldEvent[]>([]);
   const [selectedEvent, setSelectedEvent] = React.useState<MoldEvent | null>(null);
   const [isAddSheetOpen, setIsAddSheetOpen] = React.useState(false);
+  const { user } = useApp();
 
   const fetchEvents = React.useCallback(() => {
     getEventsForMold(moldId).then(setEvents);
@@ -53,15 +57,23 @@ export function EventTimeline({ moldId }: EventTimelineProps) {
     setIsAddSheetOpen(false);
   }
 
+  const handleEventClick = (event: MoldEvent) => {
+    if (user?.isAdmin && event.status !== 'Chiuso') {
+      setSelectedEvent(event);
+    }
+  }
+
   return (
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Event History</CardTitle>
-          <Button variant="outline" size="sm" onClick={() => setIsAddSheetOpen(true)}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Event
-          </Button>
+          {user?.isAdmin && (
+            <Button variant="outline" size="sm" onClick={() => setIsAddSheetOpen(true)}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Event
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           {events.length > 0 ? (
@@ -76,9 +88,9 @@ export function EventTimeline({ moldId }: EventTimelineProps) {
                   key={event.id}
                   className={cn(
                     "flex gap-4 p-2 rounded-md",
-                    !isClosed && "cursor-pointer hover:bg-muted"
+                    !isClosed && user?.isAdmin && "cursor-pointer hover:bg-muted"
                   )}
-                  onClick={() => !isClosed && setSelectedEvent(event)}
+                  onClick={() => handleEventClick(event)}
                 >
                   <div className="relative flex-shrink-0 pt-1">
                     {index < events.length - 1 && (

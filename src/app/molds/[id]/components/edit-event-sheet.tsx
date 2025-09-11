@@ -9,6 +9,7 @@ import {
   SheetTitle,
   SheetDescription,
   SheetFooter,
+  SheetClose,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -28,6 +29,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { Loader2 } from 'lucide-react';
 
 interface EditEventSheetProps {
   event: MoldEvent;
@@ -40,14 +42,22 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
   const { toast } = useToast();
   const [description, setDescription] = React.useState(event.descrizione);
   const [cost, setCost] = React.useState(event.costo?.toString() || '');
+  const [estimatedEndDate, setEstimatedEndDate] = React.useState(event.estimatedEndDate)
   const [isSaving, setIsSaving] = React.useState(false);
   
+  React.useEffect(() => {
+    setDescription(event.descrizione);
+    setCost(event.costo?.toString() || '');
+    setEstimatedEndDate(event.estimatedEndDate);
+  }, [event]);
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
       await updateEvent(event.id, {
         descrizione: description,
         costo: cost ? parseFloat(cost) : null,
+        estimatedEndDate: estimatedEndDate
       });
       toast({
         title: 'Event Updated',
@@ -114,6 +124,15 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
               rows={4}
             />
           </div>
+           <div className="grid gap-2">
+                <Label htmlFor="event-estimated-end-date">Estimated End Date</Label>
+                <Input
+                    id="event-estimated-end-date"
+                    type="date"
+                    value={estimatedEndDate}
+                    onChange={(e) => setEstimatedEndDate(e.target.value)}
+                />
+            </div>
           <div className="grid gap-2">
             <Label htmlFor="event-cost">Cost</Label>
             <Input
@@ -125,7 +144,7 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
             />
           </div>
         </div>
-        <SheetFooter className="gap-2 sm:justify-between">
+        <SheetFooter className="gap-2 sm:flex sm:flex-row sm:justify-between pt-4">
            <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" disabled={isSaving}>Mark as Done</Button>
@@ -143,9 +162,15 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save Changes'}
-          </Button>
+            <div className="flex gap-2">
+                <SheetClose asChild>
+                    <Button variant="ghost">Cancel</Button>
+                </SheetClose>
+                <Button onClick={handleSave} disabled={isSaving}>
+                    {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {isSaving ? 'Saving...' : 'Save Changes'}
+                </Button>
+            </div>
         </SheetFooter>
       </SheetContent>
     </Sheet>

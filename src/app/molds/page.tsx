@@ -1,3 +1,4 @@
+
 import { getMolds } from '@/lib/data';
 import { MoldsTable } from './components/molds-table';
 import { RestrictedPage } from '@/components/layout/restricted-page';

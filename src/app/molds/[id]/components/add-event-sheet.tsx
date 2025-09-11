@@ -12,6 +12,7 @@ import {
   SheetTitle,
   SheetDescription,
   SheetFooter,
+  SheetClose
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,7 +34,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { createEvent } from '@/lib/data';
-import { PlusCircle, Trash2 } from 'lucide-react';
+import { PlusCircle, Trash2, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { MoldEvent } from '@/lib/types';
 
@@ -52,7 +53,7 @@ const customFieldSchema = z.object({
 const eventSchema = z.object({
   type: z.enum(['Manutenzione', 'Lavorazione', 'Riparazione', 'Costo', 'Altro']),
   descrizione: z.string().min(1, 'Description is required.'),
-  estimatedEndDate: z.string().min(1, 'Estimated end date is required'),
+  estimatedEndDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date format" }),
   costo: z.string().optional(),
   customFields: z.array(customFieldSchema).optional(),
 });
@@ -113,7 +114,7 @@ export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventS
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="sm:max-w-lg">
+      <SheetContent className="sm:max-w-lg overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Add New Event</SheetTitle>
           <SheetDescription>
@@ -241,8 +242,12 @@ export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventS
                 </CardContent>
             </Card>
 
-            <SheetFooter>
+            <SheetFooter className="pt-4">
+              <SheetClose asChild>
+                <Button type="button" variant="outline">Cancel</Button>
+              </SheetClose>
               <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {isSubmitting ? 'Saving...' : 'Save Event'}
               </Button>
             </SheetFooter>

@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import Link from 'next/link';
@@ -41,6 +42,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useApp } from '@/context/app-context';
 import { ImportMoldsDialog } from './import-molds-dialog';
+import { AdminButton } from '@/components/layout/admin-button';
 
 interface MoldsTableProps {
   data: Mold[];
@@ -167,24 +169,9 @@ export function MoldsTable({ data }: MoldsTableProps) {
         </TableCell>
         <TableCell>{mold.data}</TableCell>
         <TableCell className="text-right">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <GripVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
+            <Button asChild variant="outline" size="sm">
                 <Link href={`/molds/${mold.id}`}>View Details</Link>
-              </DropdownMenuItem>
-               {user?.isAdmin && (
-                <DropdownMenuItem asChild>
-                  <Link href={`/molds/${mold.id}/edit`}>Edit</Link>
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </Button>
         </TableCell>
         {mold.children && mold.children.length > 0 && (
           <CollapsibleContent asChild>
@@ -235,12 +222,10 @@ export function MoldsTable({ data }: MoldsTableProps) {
                 </Button>
               </>
             )}
-            <Button asChild>
-              <Link href="/molds/new">
+            <AdminButton href="/molds/new">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add Mold
-              </Link>
-            </Button>
+            </AdminButton>
           </div>
         </div>
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
