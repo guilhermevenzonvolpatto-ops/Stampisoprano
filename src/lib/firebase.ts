@@ -4,13 +4,14 @@ import { getFirestore } from "firebase/firestore";
 
 // Your web app's Firebase configuration will be populated here
 const firebaseConfig = {
-  "projectId": "mold-manager-i7b2i",
-  "appId": "1:279976860778:web:100c1cf4eb20b7d5e4be13",
-  "storageBucket": "mold-manager-i7b2i.appspot.com",
-  "apiKey": "AIzaSyDhctkmZcMkLNqz8rFVLHMiVdjpFUXKJtY",
-  "authDomain": "mold-manager-i7b2i.firebaseapp.com",
-  "messagingSenderId": "279976860778"
+  apiKey: "AIzaSyDhctkmZcMkLNqz8rFVLHMiVdjpFUXKJtY",
+  authDomain: "mold-manager-i7b2i.firebaseapp.com",
+  projectId: "mold-manager-i7b2i",
+  storageBucket: "mold-manager-i7b2i.firebasestorage.app",
+  messagingSenderId: "279976860778",
+  appId: "1:279976860778:web:57beba299d51d9a0e4be13"
 };
+
 
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
