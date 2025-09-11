@@ -68,7 +68,7 @@ export function ImportMoldsDialog({ isOpen, onClose }: ImportMoldsDialogProps) {
 
           const result = await createMold(moldData);
 
-          if (result?.error) {
+          if (result && 'error' in result) {
             errorCount++;
             errors.push(`Row for ${row.codice}: ${result.error}`);
           } else {
