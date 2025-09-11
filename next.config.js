@@ -3,13 +3,8 @@ const nextConfig = {
   output: 'export',
   images: {
     unoptimized: true,
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'picsum.photos',
-      },
-    ],
   },
+  basePath: '/Sopranostampi',
 };
 
 module.exports = nextConfig;

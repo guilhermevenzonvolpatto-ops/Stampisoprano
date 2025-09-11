@@ -30,7 +30,6 @@ import { createMold } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 import type { Mold } from '@/lib/types';
 import { PlusCircle, Trash2 } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
 
 const customFieldSchema = z.object({
   key: z.string().min(1, 'Field name is required.'),
@@ -60,7 +59,6 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
     const { toast } = useToast();
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = React.useState(false);
-    const [positionType, setPositionType] = React.useState<'interna'|'esterna'>('interna');
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -79,6 +77,8 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
             customFields: [],
         },
     });
+    
+    const positionType = form.watch('posizioneType');
 
     const { fields, append, remove } = useFieldArray({
       control: form.control,
@@ -116,7 +116,7 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
 
             const result = await createMold(newMoldData);
 
-            if (result?.error) {
+            if ('error' in result) {
                  toast({
                     title: 'Error',
                     description: result.error,
@@ -217,10 +217,7 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
                                 <FormLabel>Position Type</FormLabel>
                                 <FormControl>
                                     <RadioGroup
-                                    onValueChange={(value) => {
-                                        field.onChange(value);
-                                        setPositionType(value as 'interna'|'esterna');
-                                    }}
+                                    onValueChange={field.onChange}
                                     defaultValue={field.value}
                                     className="flex items-center space-x-4"
                                     >
@@ -398,3 +395,5 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
         </Form>
     );
 }
+
+    

@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LogIn } from 'lucide-react';
+import { LogIn, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
@@ -76,7 +76,7 @@ export default function LoginPage() {
               className="w-full"
               disabled={loading}
             >
-              <LogIn className="mr-2 h-4 w-4" />
+              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
               {loading ? 'Logging in...' : 'Login'}
             </Button>
           </form>
@@ -85,3 +85,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    

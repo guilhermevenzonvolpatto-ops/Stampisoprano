@@ -5,6 +5,7 @@ import { getUser } from '@/lib/data';
 import type { User } from '@/lib/types';
 import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type AppContextType = {
   user: User | null;
@@ -29,25 +30,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
        getUser(activeUserCode)
         .then((user) => {
             setUser(user);
-            // If we successfully get a user, and we are on the login page, redirect to dashboard
-            if(user && pathname === '/') {
-                router.push('/dashboard');
-            }
         })
         .catch(() => {
             sessionStorage.removeItem('activeUser');
             setUser(null);
-            router.push('/');
         })
         .finally(() => setIsLoading(false));
     } else {
        setIsLoading(false);
-       // If not logged in and not on the root (login) page, redirect there.
-       if (pathname !== '/') {
-        router.push('/');
-       }
     }
-  }, [router, pathname]);
+  }, []);
+
+  React.useEffect(() => {
+      if (!isLoading) {
+          if (user && pathname === '/') {
+              router.push('/dashboard');
+          } else if (!user && pathname !== '/') {
+              router.push('/');
+          }
+      }
+  }, [user, pathname, isLoading, router]);
 
   const loginAs = async (userCode: string) => {
     setIsLoading(true);
@@ -70,18 +72,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const value = { user, language, setLanguage, loginAs, logout };
   
-  if (isLoading) {
-    return null;
-  }
-  
-  // If we have a user but are still on the login page, wait for redirect
-  if (user && pathname === '/') {
-    return null;
-  }
-  
-  // If not logged in and not on the login page, wait for redirect
-  if (!user && pathname !== '/') {
-    return null;
+  if (isLoading || (!user && pathname !== '/') || (user && pathname === '/')) {
+      return (
+        <div className="flex h-screen w-screen items-center justify-center">
+            <Skeleton className="h-24 w-24 rounded-full" />
+        </div>
+      )
   }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
@@ -94,3 +90,5 @@ export function useApp() {
   }
   return context;
 }
+
+    
