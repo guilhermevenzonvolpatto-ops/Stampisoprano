@@ -99,7 +99,7 @@ export function AddComponentForm({ allMolds }: AddComponentFormProps) {
 
       const result = await createComponent(newComponentData);
 
-      if (result?.error) {
+      if ('error' in result) {
         toast({
           title: 'Error',
           description: result.error,
