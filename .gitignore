@@ -1,38 +1,53 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# Dependencies
+# dependencies
 /node_modules
 /.pnp
 .pnp.js
 
-# Testing
+# testing
 /coverage
 
-# Next.js build output
+# next.js
 /.next/
 /out/
 
-# Production
+# production
 /build
 
-# Misc
+# misc
 .DS_Store
 *.pem
 
-# Firebase
-.firebase/
-
-# Debug
+# debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 
-# Local environment variables
+# local env files
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# TypeScript
-*.tsbuildinfo
-next-env.d.ts
+# vercel
+.vercel
+
+# firebase
+.firebase/
+.firebaserc
+
+# macos
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db

@@ -1,49 +1,37 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { ComponentSearch } from '@/components/dashboard/component-search';
-import { QuickProductionLog } from '@/components/dashboard/quick-production-log';
-import { ScrapRateChart } from '@/components/dashboard/scrap-rate-chart';
-import { StatsCards } from '@/components/dashboard/stats-cards';
-import { StatusChart } from '@/components/dashboard/status-chart';
-import { SupplierChart } from '@/components/dashboard/supplier-chart';
-import { UpcomingEvents } from '@/components/dashboard/upcoming-events';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
 
-export default function DashboardPage() {
+export default function HomePage() {
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <div className="space-y-4">
-        <StatsCards />
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-          <Card className="col-span-4">
-            <CardHeader>
-              <CardTitle>Status Distribution</CardTitle>
-            </CardHeader>
-            <CardContent className="pl-2">
-              <StatusChart />
-            </CardContent>
-          </Card>
-          <Card className="col-span-3">
-            <CardHeader>
-              <CardTitle>Supplier Distribution</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <SupplierChart />
-            </CardContent>
-          </Card>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-           <ScrapRateChart className="col-span-full" />
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <UpcomingEvents />
-          <ComponentSearch />
-        </div>
-        <QuickProductionLog />
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)]">
+      <div className="text-center mb-10">
+        <h1 className="text-4xl font-bold tracking-tight lg:text-5xl">
+          Benvenuto in Sopranostampi
+        </h1>
+        <p className="mt-4 text-lg text-muted-foreground">
+          La tua soluzione centralizzata per la gestione degli stampi.
+        </p>
       </div>
+      <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Accesso Rapido</CardTitle>
+            <CardDescription>
+              Seleziona una sezione per iniziare.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button asChild className="w-full" size="lg">
+              <Link href="/dashboard">Vai alla Dashboard</Link>
+            </Button>
+             <Button asChild className="w-full" variant="secondary">
+              <Link href="/molds">Gestione Stampi</Link>
+            </Button>
+            <Button asChild className="w-full" variant="secondary">
+              <Link href="/components">Gestione Componenti</Link>
+            </Button>
+          </CardContent>
+        </Card>
     </div>
   );
 }

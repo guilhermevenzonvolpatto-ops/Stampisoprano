@@ -1,9 +1,7 @@
-
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import { AppProvider } from '@/context/app-context';
 import Header from '@/components/layout/header';
 
 const fontBody = Inter({
@@ -12,8 +10,8 @@ const fontBody = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Mold Manager',
-  description: 'Advanced Mold Management System',
+  title: 'Sopranostampi',
+  description: 'Gestione Stampi Avanzata',
   icons: {
     icon: 'data:;base64,iVBORw0KGgo=',
   }
@@ -25,16 +23,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="it" suppressHydrationWarning>
       <head/>
-      <body className={`${fontBody.variable} font-body antialiased`}>
-        <AppProvider>
-          <div className="relative flex min-h-screen flex-col bg-background">
-            <Header />
-            <main className="flex-1">{children}</main>
-          </div>
-          <Toaster />
-        </AppProvider>
+      <body className={`${fontBody.variable} font-sans antialiased`}>
+        <div className="relative flex min-h-screen flex-col bg-background">
+          <Header />
+          <main className="flex-1">{children}</main>
+        </div>
+        <Toaster />
       </body>
     </html>
   );
