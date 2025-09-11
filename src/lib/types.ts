@@ -1,0 +1,140 @@
+
+
+export interface User {
+  id: string;
+  name: string;
+  isAdmin: boolean;
+  allowedCodes: string[];
+}
+
+export interface Attachment {
+  id: string;
+  fileName: string;
+  fileType: '3D' | 'PDF' | 'Image' | 'Document';
+  url: string;
+  uploadedAt: string;
+}
+
+export interface Mold {
+  id:string;
+  codice: string;
+  descrizione: string;
+  data: string;
+  padre: string | null;
+  stato: 'Operativo' | 'In Manutenzione' | 'Lavorazione' | 'Fermo';
+  isDeleted: boolean;
+  posizione: {
+    type: 'interna' | 'esterna';
+    value: string;
+  };
+  datiTecnici?: {
+    impronte?: number;
+    materialeCostruzione?: string;
+    dimensioniPeso?: string;
+    canaleCaldo?: string;
+  };
+  datiGestionali?: {
+    dataCollaudo?: string;
+    vitaUtileStimata?: number;
+    costoAcquisto?: number;
+    presseAssociate?: string;
+  };
+  macchinaAssociata?: string | null;
+  customFields?: Record<string, string>;
+  attachments?: Attachment[];
+  children?: Mold[];
+}
+
+export interface StampingData {
+  programName?: string;
+  cycleTime?: number;
+  injectionTime?: number;
+  holdingPressure?: number;
+  meltTemperature?: number;
+  moldTemperature?: number;
+  clampForce?: number;
+  injectionPressure?: number;
+  postPressure?: number;
+  maintenanceTime?: number;
+  coolingTime?: number;
+  counterPressure?: number;
+  injectionSpeed?: number;
+}
+
+export interface StampingDataHistoryEntry {
+  id: string;
+  timestamp: Date;
+  user: string;
+  changedData: Partial<StampingData>;
+}
+
+export interface Component {
+  id: string;
+  codice: string;
+  descrizione: string;
+  materiale: string;
+  peso: number;
+  stato: 'Attivo' | 'In modifica' | 'Obsoleto';
+  cicliTotali: number;
+  associatedMolds: string[];
+  datiMateriaPrima?: {
+    codiceMaterialeSpecifico?: string;
+  };
+  stampingData?: StampingData;
+  datiQualita?: Record<string, any>;
+  customFields?: Record<string, string>;
+  attachments?: Attachment[];
+}
+
+export interface Machine {
+  id: string;
+  codice: string;
+  descrizione: string;
+  tipo: string;
+  stato: 'Operativo' | 'In Manutenzione' | 'Fermo';
+  customFields?: Record<string, string>;
+}
+
+export interface MoldEvent {
+  id: string;
+  sourceId: string;
+  type: 'Manutenzione' | 'Lavorazione' | 'Riparazione' | 'Costo' | 'Altro' | 'Fine Manutenzione';
+  descrizione: string;
+  costo: number | null;
+  timestamp: Date;
+  estimatedEndDate: string;
+  actualEndDate?: string;
+  status: 'Aperto' | 'Chiuso';
+  customFields?: Record<string, string>;
+}
+
+export interface ProductionLog {
+    id: string;
+    componentId: string;
+    good: number;
+    scrapped: number;
+    scrapReason: string;
+    timestamp: Date;
+    user: string;
+    previousState?: {
+      good: number;
+      scrapped: number;
+    };
+}
+
+
+// Data types for charts
+export type MoldStatusDistribution = {
+  status: 'Operativo' | 'In Manutenzione' | 'Lavorazione' | 'Fermo';
+  count: number;
+}[];
+
+export type MoldSupplierDistribution = {
+  supplier: string;
+  count: number;
+}[];
+
+export type ComponentScrapRate = {
+    componentId: string;
+    scrapRate: number;
+}

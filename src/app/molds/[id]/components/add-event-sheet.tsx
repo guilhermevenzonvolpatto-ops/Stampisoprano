@@ -1,0 +1,254 @@
+
+'use client';
+
+import * as React from 'react';
+import { useForm, useFieldArray } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { createEvent } from '@/lib/data';
+import { PlusCircle, Trash2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { MoldEvent } from '@/lib/types';
+
+interface AddEventSheetProps {
+  sourceId: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onUpdate: () => void;
+}
+
+const customFieldSchema = z.object({
+  key: z.string().min(1, 'Field name is required.'),
+  value: z.string().min(1, 'Field value is required.'),
+});
+
+const eventSchema = z.object({
+  type: z.enum(['Manutenzione', 'Lavorazione', 'Riparazione', 'Costo', 'Altro']),
+  descrizione: z.string().min(1, 'Description is required.'),
+  estimatedEndDate: z.string().min(1, 'Estimated end date is required'),
+  costo: z.string().optional(),
+  customFields: z.array(customFieldSchema).optional(),
+});
+
+export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventSheetProps) {
+  const { toast } = useToast();
+  const form = useForm<z.infer<typeof eventSchema>>({
+    resolver: zodResolver(eventSchema),
+    defaultValues: {
+      type: 'Manutenzione',
+      descrizione: '',
+      estimatedEndDate: '',
+      costo: '',
+      customFields: [],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'customFields',
+  });
+
+  const { isSubmitting } = form.formState;
+
+  const handleSubmit = async (values: z.infer<typeof eventSchema>) => {
+    try {
+      const customFieldsObject = values.customFields?.reduce((acc, { key, value }) => {
+        acc[key] = value;
+        return acc;
+      }, {} as Record<string, string>);
+
+      const eventData: Omit<MoldEvent, 'id' | 'timestamp' | 'status'> = {
+        sourceId,
+        type: values.type,
+        descrizione: values.descrizione,
+        estimatedEndDate: values.estimatedEndDate,
+        costo: values.costo ? parseFloat(values.costo) : null,
+        customFields: customFieldsObject,
+      };
+
+      await createEvent(eventData);
+
+      toast({
+        title: 'Event Created',
+        description: 'The new event has been added to the timeline.',
+      });
+      onUpdate();
+      form.reset();
+      onClose();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Could not create the event.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  return (
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetContent className="sm:max-w-lg">
+        <SheetHeader>
+          <SheetTitle>Add New Event</SheetTitle>
+          <SheetDescription>
+            Record a new event for this item. Fill in the details below.
+          </SheetDescription>
+        </SheetHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4">
+            <FormField
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Event Type</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an event type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Manutenzione">Manutenzione</SelectItem>
+                      <SelectItem value="Lavorazione">Lavorazione</SelectItem>
+                      <SelectItem value="Riparazione">Riparazione</SelectItem>
+                      <SelectItem value="Costo">Costo</SelectItem>
+                      <SelectItem value="Altro">Altro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="descrizione"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Describe the event..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="estimatedEndDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Estimated End Date</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="costo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cost (Optional)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="0.00" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Card className="pt-4">
+                <CardHeader className="p-0 px-6 pb-4">
+                    <CardTitle className="text-base">Custom Fields (Optional)</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 p-6 pt-0">
+                    {fields.map((field, index) => (
+                    <div key={field.id} className="flex items-end gap-2">
+                        <FormField
+                        control={form.control}
+                        name={`customFields.${index}.key`}
+                        render={({ field }) => (
+                            <FormItem className="flex-1">
+                            <FormLabel className={index !== 0 ? "sr-only" : ""}>Field Name</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., Operator" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={form.control}
+                        name={`customFields.${index}.value`}
+                        render={({ field }) => (
+                            <FormItem className="flex-1">
+                            <FormLabel className={index !== 0 ? "sr-only" : ""}>Value</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., John Doe" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => remove(index)}
+                        >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                    </div>
+                    ))}
+                    <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => append({ key: '', value: '' })}
+                    >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Field
+                    </Button>
+                </CardContent>
+            </Card>
+
+            <SheetFooter>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Saving...' : 'Save Event'}
+              </Button>
+            </SheetFooter>
+          </form>
+        </Form>
+      </SheetContent>
+    </Sheet>
+  );
+}
