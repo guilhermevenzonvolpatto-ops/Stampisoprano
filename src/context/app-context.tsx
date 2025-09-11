@@ -27,7 +27,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const activeUserCode = sessionStorage.getItem('activeUser');
     if (activeUserCode && activeUserCode !== 'loggedOut') {
        getUser(activeUserCode)
-        .then(setUser)
+        .then((user) => {
+            setUser(user);
+            // If we successfully get a user, and we are on the login page, redirect to dashboard
+            if(user && pathname === '/') {
+                router.push('/dashboard');
+            }
+        })
         .catch(() => {
             sessionStorage.removeItem('activeUser');
             setUser(null);
@@ -64,8 +70,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const value = { user, language, setLanguage, loginAs, logout };
   
-  // If we are loading authentication state, don't render children to avoid flickers
   if (isLoading) {
+    return null;
+  }
+  
+  // If we have a user but are still on the login page, wait for redirect
+  if (user && pathname === '/') {
     return null;
   }
   
