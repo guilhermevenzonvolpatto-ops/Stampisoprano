@@ -51,7 +51,7 @@ export function EditProductionLogSheet({ log, isOpen, onClose }: EditProductionL
     defaultValues: {
       good: log.good,
       scrapped: log.scrapped,
-      scrapReason: log.scrapReason,
+      scrapReason: log.scrapReason || '',
     },
   });
 
@@ -78,6 +78,16 @@ export function EditProductionLogSheet({ log, isOpen, onClose }: EditProductionL
       });
     }
   };
+
+  React.useEffect(() => {
+    if (isOpen) {
+      form.reset({
+        good: log.good,
+        scrapped: log.scrapped,
+        scrapReason: log.scrapReason || '',
+      });
+    }
+  }, [isOpen, log, form]);
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>

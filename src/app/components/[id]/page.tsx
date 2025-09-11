@@ -40,7 +40,7 @@ export default async function ComponentDetailPage({
   const stampingHistory = await getStampingHistoryForComponent(component.id);
 
   const associatedMolds = (await Promise.all(
-    component.associatedMolds.map((id) => getMold(id))
+    (component.associatedMolds || []).map((id) => getMold(id))
   )).filter(Boolean) as Mold[];
 
   const getStatusClass = (status: string) => {
@@ -119,7 +119,7 @@ export default async function ComponentDetailPage({
                 </div>
                 <div>
                   <p className="font-semibold">Total Cycles</p>
-                  <p className="text-muted-foreground">{component.cicliTotali.toLocaleString()}</p>
+                  <p className="text-muted-foreground">{(component.cicliTotali || 0).toLocaleString()}</p>
                 </div>
                 {component.datiMateriaPrima?.codiceMaterialeSpecifico && (
                   <div>

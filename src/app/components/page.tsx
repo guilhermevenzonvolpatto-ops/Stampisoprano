@@ -1,3 +1,4 @@
+
 import { getComponents } from '@/lib/data';
 import { ComponentsTable } from '@/app/components/components-table';
 import { RestrictedPage } from '@/components/layout/restricted-page';

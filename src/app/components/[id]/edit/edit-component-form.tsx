@@ -72,8 +72,8 @@ export function EditComponentForm({ component, allMolds }: EditComponentFormProp
       materiale: component.materiale,
       peso: component.peso,
       stato: component.stato,
-      associatedMolds: component.associatedMolds,
-      ...component.stampingData,
+      associatedMolds: component.associatedMolds || [],
+      ...(component.stampingData || {}),
     },
   });
 
@@ -117,11 +117,12 @@ export function EditComponentForm({ component, allMolds }: EditComponentFormProp
         const changedData: Partial<StampingData> = {};
 
         for (const key in stampingData) {
-            if (originalStampingData[key as keyof StampingData] !== stampingData[key as keyof StampingData]) {
-                (changedData as any)[key] = stampingData[key as keyof StampingData];
+            const K = key as keyof StampingData;
+            if (originalStampingData[K] !== stampingData[K]) {
+                (changedData as any)[K] = stampingData[K];
             }
         }
-        if (Object.keys(changedData).length > 0) {
+        if (Object.keys(changedData).length > 0 && user.id) {
             await createStampingHistoryEntry(component.id, user.id, changedData);
         }
 

@@ -1,3 +1,4 @@
+
 import { getMolds } from '@/lib/data';
 import { AddComponentForm } from './add-component-form';
 import { RestrictedPage } from '@/components/layout/restricted-page';
