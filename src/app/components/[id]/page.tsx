@@ -103,7 +103,7 @@ export default async function ComponentDetailPage({
 
         <div className="grid gap-6">
           <div className="grid gap-6 lg:grid-cols-2">
-            <EditCustomFields item={component as Mold | Component | Machine} itemType="component" />
+            <EditCustomFields item={component as Mold | Component} itemType="component" />
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle>Component Details</CardTitle>

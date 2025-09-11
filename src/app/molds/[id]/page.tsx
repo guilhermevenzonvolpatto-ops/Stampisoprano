@@ -15,7 +15,7 @@ import { EventTimeline } from './components/event-timeline';
 import { AssociatedComponents } from './components/associated-components';
 import { RestrictedPage } from '@/components/layout/restricted-page';
 import { EditCustomFields } from '@/components/shared/edit-custom-fields';
-import type { Mold, Component as CompType, Machine } from '@/lib/types';
+import type { Mold, Component as CompType } from '@/lib/types';
 import { AdminButton } from '@/components/layout/admin-button';
 import { MoldAttachments } from './components/mold-attachments';
 
@@ -79,7 +79,7 @@ export default async function MoldDetailPage({
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-6">
-             <EditCustomFields item={mold as Mold | CompType | Machine} itemType="mold" />
+             <EditCustomFields item={mold as Mold | CompType} itemType="mold" />
             <Card>
               <CardHeader>
                 <CardTitle>Details</CardTitle>
