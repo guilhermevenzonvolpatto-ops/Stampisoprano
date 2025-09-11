@@ -101,7 +101,7 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
                     type: values.posizioneType,
                     value: values.posizioneValue,
                 },
-                macchinaAssociata: values.macchinaAssociata,
+                macchinaAssociata: values.macchinaAssociata || null,
                 datiTecnici: {
                     impronte: values.impronte,
                     materialeCostruzione: values.materialeCostruzione,
@@ -191,6 +191,7 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
                                         </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
+                                            <SelectItem value="">No Parent</SelectItem>
                                             {allMolds.filter(m => !m.padre).map(mold => (
                                                 <SelectItem key={mold.id} value={mold.id}>{mold.codice} - {mold.descrizione}</SelectItem>
                                             ))}
@@ -268,7 +269,7 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
                                 <FormItem>
                                 <FormLabel>Impressions</FormLabel>
                                 <FormControl>
-                                    <Input type="number" placeholder="e.g., 4" {...field} />
+                                    <Input type="number" placeholder="e.g., 4" {...field} value={field.value ?? ''} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
@@ -281,7 +282,7 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
                                 <FormItem>
                                 <FormLabel>Construction Material</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="e.g., Steel 1.2343" {...field} />
+                                    <Input placeholder="e.g., Steel 1.2343" {...field} value={field.value ?? ''}/>
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
@@ -294,7 +295,7 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
                                 <FormItem>
                                 <FormLabel>Dimensions & Weight</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="e.g., 80x60x50cm - 800kg" {...field} />
+                                    <Input placeholder="e.g., 80x60x50cm - 800kg" {...field} value={field.value ?? ''} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
@@ -307,7 +308,7 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
                                 <FormItem>
                                 <FormLabel>Purchase Cost (€)</FormLabel>
                                 <FormControl>
-                                    <Input type="number" placeholder="e.g., 50000" {...field} />
+                                    <Input type="number" placeholder="e.g., 50000" {...field} value={field.value ?? ''} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
@@ -320,7 +321,7 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
                                 <FormItem>
                                 <FormLabel>Expected Lifetime (cycles)</FormLabel>
                                 <FormControl>
-                                    <Input type="number" placeholder="e.g., 1000000" {...field} />
+                                    <Input type="number" placeholder="e.g., 1000000" {...field} value={field.value ?? ''} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>

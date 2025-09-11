@@ -18,7 +18,7 @@ import { LogIn, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
-  const { user, loginAs } = useApp();
+  const { loginAs } = useApp();
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
@@ -30,8 +30,7 @@ export default function LoginPage() {
 
     setLoading(true);
     const success = await loginAs(code);
-    setLoading(false);
-
+    
     if (success) {
       router.push('/dashboard');
     } else {
@@ -42,22 +41,15 @@ export default function LoginPage() {
       });
       setCode('');
     }
+    setLoading(false);
   };
-  
-  // If user is already logged in, redirect to dashboard
-  React.useEffect(() => {
-    if (user) {
-      router.push('/dashboard');
-    }
-  }, [user, router]);
-
 
   return (
     <div className="flex min-h-[calc(100vh-10rem)] items-center justify-center bg-background">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <CardTitle>Welcome</CardTitle>
-          <CardDescription>Enter your user code to log in to Mold Manager</CardDescription>
+          <CardDescription>Enter your user code to log in</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
@@ -69,12 +61,13 @@ export default function LoginPage() {
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 required
+                disabled={loading}
               />
             </div>
             <Button
               type="submit"
               className="w-full"
-              disabled={loading}
+              disabled={loading || !code}
             >
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
               {loading ? 'Logging in...' : 'Login'}

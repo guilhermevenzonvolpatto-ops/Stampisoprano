@@ -61,6 +61,7 @@ export interface StampingData {
 
 export interface StampingDataHistoryEntry {
   id: string;
+  componentId: string;
   timestamp: Date;
   user: string;
   changedData: Partial<StampingData>;
@@ -133,5 +134,8 @@ export type MoldSupplierDistribution = {
 
 export type ComponentScrapRate = {
     componentId: string;
+    componentCode: string;
     scrapRate: number;
 }
+
+    

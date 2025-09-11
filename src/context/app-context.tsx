@@ -29,7 +29,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (activeUserCode && activeUserCode !== 'loggedOut') {
        getUser(activeUserCode)
         .then((user) => {
-            setUser(user);
+            if(user) setUser(user);
         })
         .catch(() => {
             sessionStorage.removeItem('activeUser');
@@ -38,8 +38,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         .finally(() => setIsLoading(false));
     } else {
        setIsLoading(false);
+       if (pathname !== '/') {
+         router.push('/');
+       }
     }
-  }, []);
+  }, [pathname, router]);
 
   React.useEffect(() => {
       if (!isLoading) {
@@ -52,30 +55,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [user, pathname, isLoading, router]);
 
   const loginAs = async (userCode: string) => {
-    setIsLoading(true);
     const newUser = await getUser(userCode);
     if (newUser) {
       sessionStorage.setItem('activeUser', userCode);
       setUser(newUser);
-      setIsLoading(false);
       return true;
     }
-    setIsLoading(false);
     return false;
   };
   
   const logout = () => {
-    sessionStorage.setItem('activeUser', 'loggedOut');
+    sessionStorage.removeItem('activeUser');
     setUser(null);
     router.push('/');
   };
 
   const value = { user, language, setLanguage, loginAs, logout };
   
-  if (isLoading || (!user && pathname !== '/') || (user && pathname === '/')) {
+  const isAuthPage = pathname === '/';
+
+  if (isLoading || (!user && !isAuthPage) || (user && isAuthPage)) {
       return (
         <div className="flex h-screen w-screen items-center justify-center">
-            <Skeleton className="h-24 w-24 rounded-full" />
+             <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
         </div>
       )
   }

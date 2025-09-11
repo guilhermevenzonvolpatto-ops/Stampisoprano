@@ -1,7 +1,7 @@
 
 'use client';
 import * as React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { useApp } from '@/context/app-context';
 import { useRouter } from 'next/navigation';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function QuickProductionLog() {
   const [component, setComponent] = React.useState<Component | null>(null);
@@ -27,28 +28,23 @@ export function QuickProductionLog() {
     getComponents().then(setAllComponents);
   }, []);
 
-  React.useEffect(() => {
-    if (!searchTerm) {
-      setComponent(null);
-      return;
-    }
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const term = e.target.value;
+    setSearchTerm(term);
 
-    setIsLoading(true);
-    const handler = setTimeout(() => {
-      const foundComponent = allComponents.find(c => c.codice.toLowerCase() === searchTerm.toLowerCase());
-      if (foundComponent) {
-        setComponent(foundComponent);
-      } else {
+    if (!term) {
         setComponent(null);
-      }
-      setIsLoading(false);
-    }, 500); // 500ms debounce delay
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [searchTerm, allComponents]);
-
+        return;
+    }
+    
+    // Auto-select if a perfect match is found
+    const foundComponent = allComponents.find(c => c.codice.toLowerCase() === term.toLowerCase());
+    if (foundComponent) {
+        setComponent(foundComponent);
+    } else {
+        setComponent(null);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -60,49 +56,60 @@ export function QuickProductionLog() {
     const scrapped = Number(formData.get('scrapped-pieces'));
     const reason = formData.get('scrap-reason') as string;
 
-    await logProduction({
-      componentId: component.id,
-      good,
-      scrapped,
-      scrapReason: reason,
-      user: user.id,
-    });
-    
-    toast({
-      title: 'Production Logged',
-      description: `Production data for ${component.codice} has been saved.`,
-    });
-    
-    router.refresh();
+    try {
+        await logProduction({
+            componentId: component.id,
+            good,
+            scrapped,
+            scrapReason: reason,
+            user: user.id,
+        });
+        
+        toast({
+        title: 'Production Logged',
+        description: `Production data for ${component.codice} has been saved.`,
+        });
+        
+        router.refresh();
 
-    setComponent(null);
-    setSearchTerm('');
-    (e.target as HTMLFormElement).reset();
-    setIsSaving(false);
+        setComponent(null);
+        setSearchTerm('');
+        (e.target as HTMLFormElement).reset();
+    } catch(error) {
+        toast({
+            title: 'Error',
+            description: 'Failed to log production data.',
+            variant: 'destructive'
+        })
+    } finally {
+        setIsSaving(false);
+    }
   };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Quick Production Log</CardTitle>
+        <CardDescription>Quickly log production runs for any component.</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <div>
-            <Label htmlFor="quick-log-search-input">Search Component (Auto-fill)</Label>
+            <Label htmlFor="quick-log-search-input">Search Component by Code</Label>
             <div className="mt-1 relative">
               <Input
                 id="quick-log-search-input"
                 placeholder="Start typing component code..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearch}
+                className="peer"
               />
               {isLoading && (
                  <Loader2 className="animate-spin h-5 w-5 text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2" />
               )}
             </div>
           </div>
-          {component && (
+          {component ? (
             <form
               onSubmit={handleSave}
               className="border-t pt-4 space-y-3 animate-in fade-in-50"
@@ -139,7 +146,7 @@ export function QuickProductionLog() {
                 </div>
               </div>
               <div>
-                <Label htmlFor="quick-log-scrap-reason">Scrap Reason</Label>
+                <Label htmlFor="quick-log-scrap-reason">Scrap Reason (optional)</Label>
                 <Textarea
                   id="quick-log-scrap-reason"
                   name="scrap-reason"
@@ -153,9 +160,19 @@ export function QuickProductionLog() {
                 </Button>
               </div>
             </form>
+          ) : searchTerm ? (
+            <div className="text-center text-sm text-muted-foreground pt-4 border-t">
+                <p>No component found for code <span className="font-mono bg-muted px-1.5 py-0.5 rounded">{searchTerm}</span>.</p>
+            </div>
+          ) : (
+             <div className="text-center text-sm text-muted-foreground pt-4 border-t">
+                <p>Enter a component code to begin logging.</p>
+            </div>
           )}
         </div>
       </CardContent>
     </Card>
   );
 }
+
+    

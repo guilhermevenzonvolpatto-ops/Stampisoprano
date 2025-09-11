@@ -25,6 +25,7 @@ const moldsCol = collection(db, 'molds');
 const componentsCol = collection(db, 'components');
 const eventsCol = collection(db, 'events');
 const productionLogsCol = collection(db, 'productionLogs');
+const stampingHistoryCol = collection(db, 'stampingHistory');
 const machinesCol = collection(db, 'machines');
 
 
@@ -104,7 +105,7 @@ export const createMold = async (data: Omit<Mold, 'id' | 'data' | 'stato' | 'isD
         isDeleted: false,
     };
     await setDoc(docRef, newMold);
-    return { id: docRef.id, ...newMold };
+    return { id: docRef.id, ...newMold } as Mold;
 };
 
 export const createComponent = async (data: Omit<Component, 'id' | 'stato' | 'cicliTotali'>): Promise<Component | { error: string }> => {
@@ -119,7 +120,7 @@ export const createComponent = async (data: Omit<Component, 'id' | 'stato' | 'ci
         cicliTotali: 0,
     };
     await setDoc(docRef, newComponent);
-    return { id: docRef.id, ...newComponent };
+    return { id: docRef.id, ...newComponent } as Component;
 };
 
 export const getMolds = async (): Promise<Mold[]> => {
@@ -127,7 +128,7 @@ export const getMolds = async (): Promise<Mold[]> => {
     const snapshot = await getDocs(q);
     const moldList = snapshot.docs.map(docToMold);
     // client-side nesting
-    const moldMap = new Map(moldList.map(m => [m.id, {...m, children: []}]));
+    const moldMap = new Map(moldList.map(m => [m.id, {...m, children: [] as Mold[]}]));
     const topLevelMolds: Mold[] = [];
 
     for(const mold of moldList) {
@@ -184,8 +185,8 @@ export const updateComponent = async (id: string, updates: Partial<Component>): 
 };
 
 export const createStampingHistoryEntry = async (componentId: string, userId: string, changedData: Partial<StampingData>) => {
-    const historyCol = collection(db, 'components', componentId, 'stampingHistory');
-    await addDoc(historyCol, {
+    await addDoc(stampingHistoryCol, {
+        componentId,
         timestamp: serverTimestamp(),
         user: userId,
         changedData: changedData,
@@ -284,7 +285,8 @@ export const getScrapRate = async (periodInDays: number) => {
             const totalScrapped = relevantLogs.reduce((sum, log) => sum + log.scrapped, 0);
             const total = totalGood + totalScrapped;
             return {
-                componentId: c.codice,
+                componentId: c.id,
+                componentCode: c.codice,
                 scrapRate: total > 0 ? parseFloat(((totalScrapped / total) * 100).toFixed(1)) : 0
             };
         });
@@ -348,8 +350,7 @@ export const getProductionLogsForComponent = async (componentId: string): Promis
 }
 
 export const getStampingHistoryForComponent = async (componentId: string): Promise<StampingDataHistoryEntry[]> => {
-    const historyCol = collection(db, 'components', componentId, 'stampingHistory');
-    const q = query(historyCol, orderBy('timestamp', 'desc'));
+    const q = query(stampingHistoryCol, where('componentId', '==', componentId), orderBy('timestamp', 'desc'));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(docToStampingDataHistoryEntry);
 };
@@ -479,3 +480,5 @@ export const createEvent = async (eventData: Omit<MoldEvent, 'id' | 'timestamp' 
         status: 'Aperto'
     };
 }
+
+    
