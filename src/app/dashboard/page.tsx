@@ -4,6 +4,7 @@ import { UpcomingEvents } from '@/components/dashboard/upcoming-events';
 import { ComponentSearch } from '@/components/dashboard/component-search';
 import { QuickProductionLog } from '@/components/dashboard/quick-production-log';
 import { RestrictedPage } from '@/components/layout/restricted-page';
+import { ScrapRateChart } from './scrap-rate-chart';
 
 export default function DashboardPage() {
   return (
@@ -16,6 +17,7 @@ export default function DashboardPage() {
             <UpcomingEvents />
             <ComponentSearch />
           </div>
+           <ScrapRateChart />
           <QuickProductionLog />
         </div>
       </div>

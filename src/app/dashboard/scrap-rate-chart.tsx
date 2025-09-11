@@ -1,15 +1,6 @@
 
 'use client';
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
-import { getScrapRate } from '@/lib/data';
-import * as React from 'react';
-import type { ComponentScrapRate } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   Select,
@@ -21,24 +12,17 @@ import {
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
-
-const chartConfig = {
-  scrapRate: {
-    label: 'Scrap Rate',
-    color: 'hsl(var(--destructive))',
-  },
-  componentId: {
-    label: 'Component'
-  }
-};
+import { useEffect, useState } from 'react';
+import type { ComponentScrapRate } from '@/lib/types';
+import { getScrapRate } from '@/lib/data';
 
 export function ScrapRateChart({ className }: { className?: string }) {
-  const [data, setData] = React.useState<ComponentScrapRate[]>([]);
-  const [timePeriod, setTimePeriod] = React.useState<string>('30');
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [data, setData] = useState<ComponentScrapRate[]>([]);
+  const [timePeriod, setTimePeriod] = useState<string>('30');
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  React.useEffect(() => {
+  useEffect(() => {
     setIsLoading(true);
     getScrapRate(Number(timePeriod)).then(data => {
         setData(data);
@@ -58,7 +42,7 @@ export function ScrapRateChart({ className }: { className?: string }) {
         <div className="flex justify-between items-center">
           <div>
             <CardTitle>Component Scrap Rate (Top 10)</CardTitle>
-            <CardDescription>Percentage of scrapped parts per component. Click a bar to view component details.</CardDescription>
+            <CardDescription>Percentage of scrapped parts per component.</CardDescription>
           </div>
           <Select value={timePeriod} onValueChange={setTimePeriod}>
             <SelectTrigger className="w-[120px]">
@@ -76,28 +60,10 @@ export function ScrapRateChart({ className }: { className?: string }) {
         {isLoading ? (
             <Skeleton className="h-[300px] w-full" />
         ) : data.length > 0 ? (
-            <ChartContainer config={chartConfig} className="h-[300px] w-full">
-            <BarChart 
-                accessibilityLayer 
-                data={data}
-                onClick={(e) => handleBarClick(e?.activePayload?.[0]?.payload)}
-                margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
-            >
-                <CartesianGrid vertical={false} />
-                <XAxis
-                dataKey="componentCode"
-                tickLine={false}
-                tickMargin={10}
-                axisLine={false}
-                />
-                <YAxis tickFormatter={(value) => `${value}%`} />
-                <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent indicator="dot" />}
-                />
-                <Bar dataKey="scrapRate" fill="var(--color-scrapRate)" radius={4} className="cursor-pointer" />
-            </BarChart>
-            </ChartContainer>
+            <div className="h-[300px] w-full">
+              {/* Chart would be rendered here */}
+              <p className="text-sm text-muted-foreground">Scrap rate data is available but the chart component is disabled.</p>
+            </div>
         ) : (
             <div className="flex items-center justify-center h-[300px] text-center text-sm text-muted-foreground">
                 <p>No scrap data recorded for the selected period.</p>
@@ -107,5 +73,3 @@ export function ScrapRateChart({ className }: { className?: string }) {
     </Card>
   );
 }
-
-    
