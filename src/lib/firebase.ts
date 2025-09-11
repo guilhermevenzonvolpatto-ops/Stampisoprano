@@ -8,7 +8,6 @@ const firebaseConfig = {
   "appId": "1:279976860778:web:100c1cf4eb20b7d5e4be13",
   "storageBucket": "mold-manager-i7b2i.appspot.com",
   "apiKey": "AIzaSyDhctkmZcMkLNqz8rFVLHMiVdjpFUXKJtY",
-a",
   "authDomain": "mold-manager-i7b2i.firebaseapp.com",
   "messagingSenderId": "279976860778"
 };

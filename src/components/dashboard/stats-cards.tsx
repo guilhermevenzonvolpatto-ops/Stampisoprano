@@ -1,3 +1,5 @@
+
+'use client';
 import {
   Card,
   CardContent,
@@ -6,9 +8,18 @@ import {
 } from '@/components/ui/card';
 import { getStats } from '@/lib/data';
 import { Package, Wrench, Globe } from 'lucide-react';
+import * as React from 'react';
 
-export async function StatsCards() {
-  const stats = await getStats();
+export function StatsCards() {
+  const [stats, setStats] = React.useState({
+    totalMolds: 0,
+    maintenanceMolds: 0,
+    externalMolds: 0,
+  });
+
+  React.useEffect(() => {
+    getStats().then(setStats);
+  }, []);
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

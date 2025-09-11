@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -11,6 +12,7 @@ import { getStatusDistribution } from '@/lib/data';
 import { useEffect, useState } from 'react';
 import type { MoldStatusDistribution } from '@/lib/types';
 import { Pie, PieChart, Cell } from 'recharts';
+import { Skeleton } from '../ui/skeleton';
 
 const chartConfig = {
   count: {
@@ -36,14 +38,19 @@ const chartConfig = {
 
 export function StatusChart() {
   const [data, setData] = useState<MoldStatusDistribution>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchData() {
-      const result = await getStatusDistribution();
+    setIsLoading(true);
+    getStatusDistribution().then(result => {
       setData(result);
-    }
-    fetchData();
+      setIsLoading(false);
+    });
   }, []);
+
+  if (isLoading) {
+    return <Skeleton className="h-[250px] w-[250px] rounded-full mx-auto" />
+  }
 
   return (
     <ChartContainer
@@ -65,7 +72,7 @@ export function StatusChart() {
           {data.map((entry) => (
             <Cell
               key={entry.status}
-              fill={chartConfig[entry.status as keyof typeof chartConfig]?.color}
+              fill={chartConfig[entry.status as keyof typeof chartConfig]?.color || 'hsl(var(--chart-1))'}
             />
           ))}
         </Pie>

@@ -10,7 +10,7 @@ import {
 import { getScrapRate } from '@/lib/data';
 import * as React from 'react';
 import type { ComponentScrapRate } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import {
   Select,
   SelectContent,
@@ -20,21 +20,30 @@ import {
 } from '../ui/select';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import { Skeleton } from '../ui/skeleton';
 
 const chartConfig = {
   scrapRate: {
     label: 'Scrap Rate',
     color: 'hsl(var(--destructive))',
   },
+  componentId: {
+    label: 'Component'
+  }
 };
 
 export function ScrapRateChart({ className }: { className?: string }) {
   const [data, setData] = React.useState<ComponentScrapRate[]>([]);
   const [timePeriod, setTimePeriod] = React.useState<string>('30');
+  const [isLoading, setIsLoading] = React.useState(true);
   const router = useRouter();
 
   React.useEffect(() => {
-    getScrapRate(Number(timePeriod)).then(setData);
+    setIsLoading(true);
+    getScrapRate(Number(timePeriod)).then(data => {
+        setData(data);
+        setIsLoading(false);
+    });
   }, [timePeriod]);
   
   const handleBarClick = (data: any) => {
@@ -47,7 +56,10 @@ export function ScrapRateChart({ className }: { className?: string }) {
     <Card className={cn(className)}>
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle>Component Scrap Rate (Top 10)</CardTitle>
+          <div>
+            <CardTitle>Component Scrap Rate (Top 10)</CardTitle>
+            <CardDescription>Percentage of scrapped parts per component. Click a bar to view component details.</CardDescription>
+          </div>
           <Select value={timePeriod} onValueChange={setTimePeriod}>
             <SelectTrigger className="w-[120px]">
               <SelectValue placeholder="Period" />
@@ -61,27 +73,36 @@ export function ScrapRateChart({ className }: { className?: string }) {
         </div>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[300px] w-full">
-          <BarChart 
-            accessibilityLayer 
-            data={data}
-            onClick={(e) => handleBarClick(e.activePayload?.[0]?.payload)}
-          >
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="componentId"
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-            />
-            <YAxis tickFormatter={(value) => `${value}%`} />
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent indicator="dot" />}
-            />
-            <Bar dataKey="scrapRate" fill="var(--color-scrapRate)" radius={4} className="cursor-pointer" />
-          </BarChart>
-        </ChartContainer>
+        {isLoading ? (
+            <Skeleton className="h-[300px] w-full" />
+        ) : data.length > 0 ? (
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+            <BarChart 
+                accessibilityLayer 
+                data={data}
+                onClick={(e) => handleBarClick(e?.activePayload?.[0]?.payload)}
+                margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
+            >
+                <CartesianGrid vertical={false} />
+                <XAxis
+                dataKey="componentId"
+                tickLine={false}
+                tickMargin={10}
+                axisLine={false}
+                />
+                <YAxis tickFormatter={(value) => `${value}%`} />
+                <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent indicator="dot" />}
+                />
+                <Bar dataKey="scrapRate" fill="var(--color-scrapRate)" radius={4} className="cursor-pointer" />
+            </BarChart>
+            </ChartContainer>
+        ) : (
+            <div className="flex items-center justify-center h-[300px] text-center text-sm text-muted-foreground">
+                <p>No scrap data recorded for the selected period.</p>
+            </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -5,6 +5,7 @@ export interface User {
   name: string;
   isAdmin: boolean;
   allowedCodes: string[];
+  allowedMachines: string[];
 }
 
 export interface Attachment {
@@ -31,16 +32,13 @@ export interface Mold {
     impronte?: number;
     materialeCostruzione?: string;
     dimensioniPeso?: string;
-    canaleCaldo?: string;
   };
   datiGestionali?: {
-    dataCollaudo?: string;
-    vitaUtileStimata?: number;
     costoAcquisto?: number;
-    presseAssociate?: string;
+    vitaUtileStimata?: number;
   };
   macchinaAssociata?: string | null;
-  customFields?: Record<string, string>;
+  customFields?: Record<string, any>;
   attachments?: Attachment[];
   children?: Mold[];
 }
@@ -81,8 +79,7 @@ export interface Component {
     codiceMaterialeSpecifico?: string;
   };
   stampingData?: StampingData;
-  datiQualita?: Record<string, any>;
-  customFields?: Record<string, string>;
+  customFields?: Record<string, any>;
   attachments?: Attachment[];
 }
 
@@ -92,7 +89,7 @@ export interface Machine {
   descrizione: string;
   tipo: string;
   stato: 'Operativo' | 'In Manutenzione' | 'Fermo';
-  customFields?: Record<string, string>;
+  customFields?: Record<string, any>;
 }
 
 export interface MoldEvent {
@@ -105,7 +102,7 @@ export interface MoldEvent {
   estimatedEndDate: string;
   actualEndDate?: string;
   status: 'Aperto' | 'Chiuso';
-  customFields?: Record<string, string>;
+  customFields?: Record<string, any>;
 }
 
 export interface ProductionLog {

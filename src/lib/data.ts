@@ -14,6 +14,7 @@ import {
   Timestamp,
   deleteDoc,
   increment,
+  runTransaction,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Mold, Component, MoldEvent, User, ProductionLog, StampingDataHistoryEntry, StampingData, Machine } from './types';
@@ -99,7 +100,7 @@ export const createMold = async (data: Omit<Mold, 'id' | 'data' | 'stato' | 'isD
     const newMold = {
         ...data,
         data: new Date().toISOString().split('T')[0],
-        stato: 'Operativo',
+        stato: 'Operativo' as Mold['stato'],
         isDeleted: false,
     };
     await setDoc(docRef, newMold);
@@ -114,7 +115,7 @@ export const createComponent = async (data: Omit<Component, 'id' | 'stato' | 'ci
     }
     const newComponent = {
         ...data,
-        stato: 'Attivo',
+        stato: 'Attivo' as Component['stato'],
         cicliTotali: 0,
     };
     await setDoc(docRef, newComponent);
@@ -125,10 +126,21 @@ export const getMolds = async (): Promise<Mold[]> => {
     const q = query(moldsCol, where('isDeleted', '==', false));
     const snapshot = await getDocs(q);
     const moldList = snapshot.docs.map(docToMold);
-    moldList.forEach(m => {
-        m.children = moldList.filter(child => child.padre === m.id);
-    });
-    return moldList;
+    // client-side nesting
+    const moldMap = new Map(moldList.map(m => [m.id, {...m, children: []}]));
+    const topLevelMolds: Mold[] = [];
+
+    for(const mold of moldList) {
+        if (mold.padre && moldMap.has(mold.padre)) {
+            const parent = moldMap.get(mold.padre);
+            if (parent) {
+                parent.children?.push(moldMap.get(mold.id)!);
+            }
+        } else {
+            topLevelMolds.push(moldMap.get(mold.id)!);
+        }
+    }
+    return topLevelMolds;
 };
 
 export const getMold = async (id: string): Promise<Mold | null> => {
@@ -187,93 +199,135 @@ export const logProduction = async (input: {
     scrapReason: string;
     user: string;
 }) => {
-    const productionLogsCol = collection(db, 'productionLogs');
-    await addDoc(productionLogsCol, {
-        ...input,
-        timestamp: serverTimestamp(),
-    });
+    await runTransaction(db, async (transaction) => {
+        const componentDocRef = doc(db, 'components', input.componentId);
+        const componentDoc = await transaction.get(componentDocRef);
 
-    const componentDocRef = doc(db, 'components', input.componentId);
-    const totalCycles = input.good + input.scrapped;
-    await updateDoc(componentDocRef, {
-        cicliTotali: increment(totalCycles),
+        if (!componentDoc.exists()) {
+            throw "Component not found!";
+        }
+        
+        const productionLogRef = doc(collection(db, 'productionLogs'));
+        transaction.set(productionLogRef, {
+            ...input,
+            timestamp: serverTimestamp(),
+        });
+        
+        const totalCycles = input.good + input.scrapped;
+        transaction.update(componentDocRef, {
+            cicliTotali: increment(totalCycles),
+        });
     });
 
     return { success: true };
 }
 
 export const getStats = async () => {
-    const allMolds = await getMolds();
-    return {
-        totalMolds: allMolds.length,
-        maintenanceMolds: allMolds.filter(m => m.stato === 'In Manutenzione').length,
-        externalMolds: allMolds.filter(m => m.posizione.type === 'esterna').length,
+    try {
+        const snapshot = await getDocs(query(moldsCol, where('isDeleted', '==', false)));
+        const allMolds = snapshot.docs.map(docToMold);
+        return {
+            totalMolds: allMolds.length,
+            maintenanceMolds: allMolds.filter(m => m.stato === 'In Manutenzione').length,
+            externalMolds: allMolds.filter(m => m.posizione.type === 'esterna').length,
+        }
+    } catch(e) {
+        console.error("Error getting stats:", e);
+        return { totalMolds: 0, maintenanceMolds: 0, externalMolds: 0 };
     }
 }
 
 export const getStatusDistribution = async () => {
-    const allMolds = await getMolds();
-    const dist = allMolds.reduce((acc, mold) => {
-        acc[mold.stato] = (acc[mold.stato] || 0) + 1;
-        return acc;
-    }, {} as Record<string, number>);
-    return Object.entries(dist).map(([status, count]) => ({ status, count })) as any;
+    try {
+        const snapshot = await getDocs(query(moldsCol, where('isDeleted', '==', false)));
+        const allMolds = snapshot.docs.map(docToMold);
+        const dist = allMolds.reduce((acc, mold) => {
+            acc[mold.stato] = (acc[mold.stato] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+        return Object.entries(dist).map(([status, count]) => ({ status, count })) as any;
+    } catch(e) {
+        console.error("Error getting status distribution:", e);
+        return [];
+    }
 }
 
 export const getSupplierDistribution = async () => {
-    const allMolds = await getMolds();
-    const externalMolds = allMolds.filter(m => m.posizione.type === 'esterna');
-    const dist = externalMolds.reduce((acc, mold) => {
-        const supplier = mold.posizione.value || 'Unknown';
-        acc[supplier] = (acc[supplier] || 0) + 1;
-        return acc;
-    }, {} as Record<string, number>);
-    return Object.entries(dist).map(([supplier, count]) => ({ supplier, count }));
+    try {
+        const snapshot = await getDocs(query(moldsCol, where('posizione.type', '==', 'esterna'), where('isDeleted', '==', false)));
+        const externalMolds = snapshot.docs.map(docToMold);
+        const dist = externalMolds.reduce((acc, mold) => {
+            const supplier = mold.posizione.value || 'Unknown';
+            acc[supplier] = (acc[supplier] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+        return Object.entries(dist).map(([supplier, count]) => ({ supplier, count }));
+    } catch(e) {
+        console.error("Error getting supplier distribution:", e);
+        return [];
+    }
 }
 
 export const getScrapRate = async (periodInDays: number) => {
-    const allComponents = await getComponents();
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - periodInDays);
+    try {
+        const allComponents = await getComponents();
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - periodInDays);
 
-    const logsQuery = query(productionLogsCol, where('timestamp', '>=', cutoffDate));
-    const logsSnapshot = await getDocs(logsQuery);
-    const allLogs = logsSnapshot.docs.map(docToProductionLog);
+        const logsQuery = query(productionLogsCol, where('timestamp', '>=', cutoffDate));
+        const logsSnapshot = await getDocs(logsQuery);
+        const allLogs = logsSnapshot.docs.map(docToProductionLog);
 
-    const rates = allComponents.map(c => {
-        const relevantLogs = allLogs.filter(log => log.componentId === c.id);
-        const totalGood = relevantLogs.reduce((sum, log) => sum + log.good, 0);
-        const totalScrapped = relevantLogs.reduce((sum, log) => sum + log.scrapped, 0);
-        const total = totalGood + totalScrapped;
-        return {
-            componentId: c.codice,
-            scrapRate: total > 0 ? parseFloat(((totalScrapped / total) * 100).toFixed(1)) : 0
-        };
-    });
+        const rates = allComponents.map(c => {
+            const relevantLogs = allLogs.filter(log => log.componentId === c.id);
+            const totalGood = relevantLogs.reduce((sum, log) => sum + log.good, 0);
+            const totalScrapped = relevantLogs.reduce((sum, log) => sum + log.scrapped, 0);
+            const total = totalGood + totalScrapped;
+            return {
+                componentId: c.codice,
+                scrapRate: total > 0 ? parseFloat(((totalScrapped / total) * 100).toFixed(1)) : 0
+            };
+        });
 
-    return rates.filter(r => r.scrapRate > 0).sort((a,b) => b.scrapRate - a.scrapRate).slice(0, 10);
+        return rates.filter(r => r.scrapRate > 0).sort((a,b) => b.scrapRate - a.scrapRate).slice(0, 10);
+    } catch(e) {
+        console.error("Error getting scrap rate:", e);
+        return [];
+    }
 }
 
 export const getUpcomingEvents = async (): Promise<MoldEvent[]> => {
-    const q = query(eventsCol, where('status', '==', 'Aperto'));
-    const snapshot = await getDocs(q);
-    const events = snapshot.docs.map(docToEvent);
-    // client-side sort
-    return events.sort((a, b) => new Date(a.estimatedEndDate).getTime() - new Date(b.estimatedEndDate).getTime());
+    try {
+        const q = query(eventsCol, where('status', '==', 'Aperto'), orderBy('estimatedEndDate', 'asc'));
+        const snapshot = await getDocs(q);
+        const events = snapshot.docs.map(docToEvent);
+        return events;
+    } catch(e) {
+        console.error("Error getting upcoming events:", e);
+        return [];
+    }
 }
 
 export const getEventsForMold = async (sourceId: string): Promise<MoldEvent[]> => {
-    const q = query(eventsCol, where('sourceId', '==', sourceId));
-    const snapshot = await getDocs(q);
-    const events = snapshot.docs.map(docToEvent);
-    // client-side sort
-    return events.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    try {
+        const q = query(eventsCol, where('sourceId', '==', sourceId), orderBy('timestamp', 'desc'));
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(docToEvent);
+    } catch(e) {
+        console.error(`Error getting events for mold ${sourceId}:`, e);
+        return [];
+    }
 }
 
 export const getComponentsForMold = async (moldId: string): Promise<Component[]> => {
-    const q = query(componentsCol, where('associatedMolds', 'array-contains', moldId));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(docToComponent);
+    try {
+        const q = query(componentsCol, where('associatedMolds', 'array-contains', moldId));
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(docToComponent);
+    } catch(e) {
+        console.error(`Error getting components for mold ${moldId}:`, e);
+        return [];
+    }
 }
 
 export const getProductionLog = async (logId: string): Promise<ProductionLog | null> => {
@@ -283,11 +337,14 @@ export const getProductionLog = async (logId: string): Promise<ProductionLog | n
 }
 
 export const getProductionLogsForComponent = async (componentId: string): Promise<ProductionLog[]> => {
-    const q = query(productionLogsCol, where('componentId', '==', componentId));
-    const snapshot = await getDocs(q);
-    const logs = snapshot.docs.map(docToProductionLog);
-    // client-side sort to avoid needing a composite index
-    return logs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    try {
+        const q = query(productionLogsCol, where('componentId', '==', componentId), orderBy('timestamp', 'desc'));
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(docToProductionLog);
+    } catch(e) {
+        console.error(`Error getting production logs for component ${componentId}:`, e);
+        return [];
+    }
 }
 
 export const getStampingHistoryForComponent = async (componentId: string): Promise<StampingDataHistoryEntry[]> => {
@@ -298,47 +355,51 @@ export const getStampingHistoryForComponent = async (componentId: string): Promi
 };
 
 export const updateProductionLog = async (id: string, updates: Partial<ProductionLog>): Promise<ProductionLog | null> => {
-    const originalLog = await getProductionLog(id);
-    if (!originalLog) {
-        throw new Error("Log not found");
-    }
-    const docRef = doc(db, 'productionLogs', id);
-    await updateDoc(docRef, updates);
+    await runTransaction(db, async (transaction) => {
+        const logDocRef = doc(db, 'productionLogs', id);
+        const logDoc = await transaction.get(logDocRef);
 
-    // Adjust component's total cycles
-    const originalTotal = (originalLog.good || 0) + (originalLog.scrapped || 0);
-    const newTotal = (updates.good || 0) + (updates.scrapped || 0);
-    const cycleDifference = newTotal - originalTotal;
-    
-    if (cycleDifference !== 0) {
-        const componentDocRef = doc(db, 'components', originalLog.componentId);
-        await updateDoc(componentDocRef, {
-            cicliTotali: increment(cycleDifference),
-        });
-    }
+        if (!logDoc.exists()) {
+            throw "Log not found";
+        }
+        const originalLog = docToProductionLog(logDoc);
+        
+        transaction.update(logDocRef, updates);
 
+        const originalTotal = (originalLog.good || 0) + (originalLog.scrapped || 0);
+        const newTotal = (updates.good ?? originalLog.good) + (updates.scrapped ?? originalLog.scrapped);
+        const cycleDifference = newTotal - originalTotal;
+        
+        if (cycleDifference !== 0) {
+            const componentDocRef = doc(db, 'components', originalLog.componentId);
+            transaction.update(componentDocRef, { cicliTotali: increment(cycleDifference) });
+        }
+    });
     return getProductionLog(id);
 }
 
 export const deleteProductionLog = async (id: string): Promise<void> => {
-    const logToDelete = await getProductionLog(id);
-    if (!logToDelete) {
-        throw new Error("Log not found");
-    }
-    const docRef = doc(db, 'productionLogs', id);
-    await deleteDoc(docRef);
-     // Decrement component's total cycles
-    const totalCyclesToDecrement = (logToDelete.good || 0) + (logToDelete.scrapped || 0);
-    if (totalCyclesToDecrement > 0) {
-        const componentDocRef = doc(db, 'components', logToDelete.componentId);
-        await updateDoc(componentDocRef, {
-            cicliTotali: increment(-totalCyclesToDecrement),
-        });
-    }
+    await runTransaction(db, async (transaction) => {
+        const logDocRef = doc(db, 'productionLogs', id);
+        const logDoc = await transaction.get(logDocRef);
 
+        if (!logDoc.exists()) {
+            throw "Log not found";
+        }
+        const logToDelete = docToProductionLog(logDoc);
+        transaction.delete(logDocRef);
+
+        const totalCyclesToDecrement = (logToDelete.good || 0) + (logToDelete.scrapped || 0);
+        if (totalCyclesToDecrement > 0) {
+            const componentDocRef = doc(db, 'components', logToDelete.componentId);
+            transaction.update(componentDocRef, { cicliTotali: increment(-totalCyclesToDecrement) });
+        }
+    });
 }
 
+
 export const getUser = async (id: string): Promise<User | null> => {
+    if (!id) return null;
     const docRef = doc(db, 'users', id);
     const docSnap = await getDoc(docRef);
     return docSnap.exists() ? docToUser(docSnap) : null;
@@ -349,17 +410,17 @@ export const getUsers = async (): Promise<User[]> => {
     return snapshot.docs.map(docToUser);
 }
 
-export const createUser = async (user: User): Promise<User | { error: string }> => {
-    if (!user.id) {
+export const createUser = async (user: Omit<User, 'id'>, id: string): Promise<User | { error: string }> => {
+    if (!id) {
         return { error: 'User ID is required.'};
     }
-    const docRef = doc(db, 'users', user.id);
+    const docRef = doc(db, 'users', id);
     const docSnap = await getDoc(docRef);
-if (docSnap.exists()) {
+    if (docSnap.exists()) {
         return { error: 'User with this code already exists.' };
     }
     await setDoc(docRef, user);
-    return user as User;
+    return { id, ...user };
 };
 
 export const updateUser = async (id: string, updates: Partial<User>): Promise<User | null> => {
@@ -372,17 +433,16 @@ export const updateEvent = async (id: string, updates: Partial<MoldEvent>): Prom
     const docRef = doc(db, 'events', id);
     await updateDoc(docRef, updates);
     const updatedEvent = await getEvent(id);
-    if (updatedEvent) {
-      if (updates.status === 'Chiuso') {
-        const allEvents = await getEventsForMold(updatedEvent.sourceId);
-        const hasOpenEvents = allEvents.some(e => e.status === 'Aperto');
-        if (!hasOpenEvents) {
-          const mold = await getMold(updatedEvent.sourceId);
-          if (mold) {
-            await updateMold(mold.id, { stato: 'Operativo' });
-          }
+    if (updatedEvent && updates.status === 'Chiuso') {
+        const mold = await getMold(updatedEvent.sourceId);
+        if (mold) {
+            const otherEvents = await getEventsForMold(updatedEvent.sourceId);
+            const hasOpenEvents = otherEvents.some(e => e.id !== id && e.status === 'Aperto');
+            // If this was the last open event, set mold to Operativo
+            if (!hasOpenEvents) {
+                await updateMold(mold.id, { stato: 'Operativo' });
+            }
         }
-      }
     }
     return updatedEvent;
 };
@@ -401,17 +461,15 @@ export const createEvent = async (eventData: Omit<MoldEvent, 'id' | 'timestamp' 
     };
     const docRef = await addDoc(eventsCol, newEventData);
 
-    const mold = await getMold(eventData.sourceId);
     let newStatus: Mold['stato'] | null = null;
-
     if (eventData.type === 'Manutenzione' || eventData.type === 'Riparazione') {
         newStatus = 'In Manutenzione';
     } else if (eventData.type === 'Lavorazione') {
         newStatus = 'Lavorazione';
     }
 
-    if (newStatus && mold) {
-         await updateMold(mold.id, { stato: newStatus as Mold['stato'] });
+    if (newStatus) {
+         await updateMold(eventData.sourceId, { stato: newStatus });
     }
 
     return {

@@ -1,3 +1,5 @@
+
+'use client';
 import { getUpcomingEvents } from '@/lib/data';
 import {
   Card,
@@ -9,6 +11,8 @@ import {
 import { Wrench, Settings, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import * as React from 'react';
+import type { MoldEvent } from '@/lib/types';
 
 function getEventTypeStyle(type: string) {
   switch (type) {
@@ -21,8 +25,11 @@ function getEventTypeStyle(type: string) {
   }
 }
 
-export async function UpcomingEvents() {
-  const events = await getUpcomingEvents();
+export function UpcomingEvents() {
+  const [events, setEvents] = React.useState<MoldEvent[]>([]);
+  React.useEffect(() => {
+    getUpcomingEvents().then(setEvents);
+  }, []);
 
   return (
     <Card className="col-span-1 lg:col-span-1">
