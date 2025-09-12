@@ -13,9 +13,9 @@ const db = admin.firestore();
 console.log('Firebase Admin Initialized.');
 
 const users = {
-    'guilhermevolp93': { id: 'guilhermevolp93', name: 'Guilherme Volpato', isAdmin: true, allowedCodes: [] },
-    'user01': { id: 'user01', name: 'Normal User', isAdmin: false, allowedCodes: ['ST-001', 'COMP-A1'] },
-    'admin': { id: 'admin', name: 'Admin User', isAdmin: true, allowedCodes: [] },
+    'guilhermevolp93': { id: 'guilhermevolp93', name: 'Guilherme Volpato', isAdmin: true, allowedCodes: [], allowedMachines: [] },
+    'user01': { id: 'user01', name: 'Normal User', isAdmin: false, allowedCodes: ['ST-001', 'COMP-A1'], allowedMachines: ['MAC-01'] },
+    'admin': { id: 'admin', name: 'Admin User', isAdmin: true, allowedCodes: [], allowedMachines: [] },
 };
 
 const molds = {
@@ -64,7 +64,7 @@ const eventsData = [
     { id: 'EVT001', sourceId: 'ST-002', type: 'Manutenzione', descrizione: 'Sostituzione inserto danneggiato', costo: 1200, timestamp: admin.firestore.Timestamp.fromDate(new Date('2024-05-10')), estimatedEndDate: '2024-07-25', status: 'Aperto' },
     { id: 'EVT002', sourceId: 'ST-003', type: 'Lavorazione', descrizione: 'Produzione lotto #5543', costo: null, timestamp: admin.firestore.Timestamp.fromDate(new Date('2024-05-01')), estimatedEndDate: '2024-08-01', status: 'Aperto' },
     { id: 'EVT003', sourceId: 'ST-001', type: 'Costo', descrizione: 'Manutenzione ordinaria', costo: 350, timestamp: admin.firestore.Timestamp.fromDate(new Date('2024-04-15')), estimatedEndDate: '2024-04-15', actualEndDate: '2024-04-15', status: 'Chiuso'},
-    { id: 'EVT004', sourceId: 'ST-001', type: 'Riparazione', descrizione: 'Sostituzione scheda elettronica', costo: 850, timestamp: admin.firestore.Timestamp.fromDate(new Date('2024-06-20')), estimatedEndDate: '2024-07-15', status: 'Aperto'},
+    { id: 'EVT004', sourceId: 'MAC-02', type: 'Riparazione', descrizione: 'Sostituzione scheda elettronica', costo: 850, timestamp: admin.firestore.Timestamp.fromDate(new Date('2024-06-20')), estimatedEndDate: '2024-07-15', status: 'Aperto'},
 ];
 
 async function seedCollection(collectionName, data) {
