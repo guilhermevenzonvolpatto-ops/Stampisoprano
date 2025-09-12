@@ -1,5 +1,5 @@
 
-import { getComponent, getMold, getProductionLogsForComponent, getStampingHistoryForComponent, getComponents } from '@/lib/data';
+import { getComponent, getMold, getProductionLogsForComponent, getStampingHistoryForComponent } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import {
   Card,
@@ -19,9 +19,15 @@ import { ProductionHistory } from '../production-history';
 import { AdminButton } from '@/components/layout/admin-button';
 import { StampingHistory } from './stamping-history';
 
+// Use static data for build-time generation to prevent build failures
+const componentsForBuild = [
+  { id: 'COMP-A1' },
+  { id: 'COMP-B2' },
+  { id: 'COMP-C3' },
+];
+
 export async function generateStaticParams() {
-  const components = await getComponents();
-  return components.map((component) => ({
+  return componentsForBuild.map((component) => ({
     id: component.id,
   }));
 }

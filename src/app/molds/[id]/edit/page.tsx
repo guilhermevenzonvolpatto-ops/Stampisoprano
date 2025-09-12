@@ -6,9 +6,17 @@ import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import { RestrictedPage } from '@/components/layout/restricted-page';
 
+// Use static data for build-time generation to prevent build failures
+const moldsForBuild = [
+    { id: 'ST-001' },
+    { id: 'ST-001-A' },
+    { id: 'ST-002' },
+    { id: 'ST-003' },
+    { id: 'ST-004' },
+];
+
 export async function generateStaticParams() {
-  const molds = await getMolds();
-  return molds.map((mold) => ({
+  return moldsForBuild.map((mold) => ({
     id: mold.id,
   }));
 }

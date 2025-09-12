@@ -1,16 +1,22 @@
 
-import { getMolds, getComponents, getUser, getUsers } from '@/lib/data';
+import { getMolds, getComponents, getUser } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { UserPermissionsForm } from './user-permissions-form';
 import { RestrictedPage } from '@/components/layout/restricted-page';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 
+// Use static data for build-time generation to prevent build failures
+const usersForBuild = [
+    { id: 'guilhermevolp93' },
+    { id: 'user01' },
+    { id: 'admin' },
+];
+
 export async function generateStaticParams() {
-  const users = await getUsers();
-  return users.map((user) => ({
-    id: user.id,
-  }));
+    return usersForBuild.map((user) => ({
+        id: user.id,
+    }));
 }
 
 export default async function EditUserPage({ params }: { params: { id: string } }) {
