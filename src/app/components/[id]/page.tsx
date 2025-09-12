@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { ComponentChecklist } from './component-checklist';
 import { DeleteButton } from '@/components/shared/delete-button';
 import Header from '@/components/layout/header';
+import { useApp } from '@/context/app-context';
 
 export default async function ComponentDetailPage({
   params,
