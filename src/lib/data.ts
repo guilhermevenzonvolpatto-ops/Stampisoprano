@@ -351,10 +351,9 @@ export const getProductionLogsForComponent = async (componentId: string): Promis
 }
 
 export const getStampingHistoryForComponent = async (componentId: string): Promise<StampingDataHistoryEntry[]> => {
-    const q = query(stampingHistoryCol, where('componentId', '==', componentId));
+    const q = query(stampingHistoryCol, where('componentId', '==', componentId), orderBy('timestamp', 'desc'));
     const snapshot = await getDocs(q);
-    const entries = snapshot.docs.map(docToStampingDataHistoryEntry);
-    return entries.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    return snapshot.docs.map(docToStampingDataHistoryEntry);
 };
 
 export const updateProductionLog = async (id: string, updates: Partial<ProductionLog>): Promise<ProductionLog | null> => {
