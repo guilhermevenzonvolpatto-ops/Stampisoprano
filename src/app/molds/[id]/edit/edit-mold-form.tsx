@@ -30,6 +30,7 @@ import { updateMold } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 import type { Mold } from '@/lib/types';
 import { PlusCircle, Trash2, Save } from 'lucide-react';
+import { useApp } from '@/context/app-context';
 
 const customFieldSchema = z.object({
   key: z.string().min(1, 'Field name is required.'),
@@ -60,6 +61,7 @@ interface EditMoldFormProps {
 export function EditMoldForm({ mold, allMolds }: EditMoldFormProps) {
     const { toast } = useToast();
     const router = useRouter();
+    const { user } = useApp();
     const [isSubmitting, setIsSubmitting] = React.useState(false);
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -317,19 +319,21 @@ export function EditMoldForm({ mold, allMolds }: EditMoldFormProps) {
                                 </FormItem>
                             )}
                         />
-                        <FormField
-                            control={form.control}
-                            name="costoAcquisto"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Purchase Cost (€)</FormLabel>
-                                <FormControl>
-                                    <Input type="number" placeholder="e.g., 50000" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        {user?.isAdmin && (
+                            <FormField
+                                control={form.control}
+                                name="costoAcquisto"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Purchase Cost (€)</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="e.g., 50000" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        )}
                         <FormField
                             control={form.control}
                             name="vitaUtileStimata"

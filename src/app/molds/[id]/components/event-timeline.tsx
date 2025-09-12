@@ -122,7 +122,7 @@ export function EventTimeline({ moldId }: EventTimelineProps) {
                         {new Date(event.timestamp).toLocaleDateString()}
                         {isClosed && event.actualEndDate && ` - Completed: ${new Date(event.actualEndDate).toLocaleDateString()}`}
                       </p>
-                      {event.costo && <p className="text-xs text-muted-foreground">Cost: ${event.costo.toFixed(2)}</p>}
+                      {user?.isAdmin && event.costo != null && <p className="text-xs text-muted-foreground">Cost: ${event.costo.toFixed(2)}</p>}
                   </div>
                 </div>
               )})}

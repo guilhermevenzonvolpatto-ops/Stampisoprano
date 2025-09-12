@@ -37,6 +37,7 @@ import { createEvent } from '@/lib/data';
 import { PlusCircle, Trash2, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { MoldEvent } from '@/lib/types';
+import { useApp } from '@/context/app-context';
 
 interface AddEventSheetProps {
   sourceId: string;
@@ -60,6 +61,7 @@ const eventSchema = z.object({
 
 export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventSheetProps) {
   const { toast } = useToast();
+  const { user } = useApp();
   const form = useForm<z.infer<typeof eventSchema>>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
@@ -173,19 +175,21 @@ export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventS
                 </FormItem>
               )}
             />
-             <FormField
-              control={form.control}
-              name="costo"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cost (Optional)</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="0.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+             {user?.isAdmin && (
+                <FormField
+                  control={form.control}
+                  name="costo"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cost (Optional)</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="0.00" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+             )}
 
             <Card className="pt-4">
                 <CardHeader className="p-0 px-6 pb-4">

@@ -30,6 +30,7 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Loader2 } from 'lucide-react';
+import { useApp } from '@/context/app-context';
 
 interface EditEventSheetProps {
   event: MoldEvent;
@@ -40,6 +41,7 @@ interface EditEventSheetProps {
 
 export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSheetProps) {
   const { toast } = useToast();
+  const { user } = useApp();
   const [description, setDescription] = React.useState(event.descrizione);
   const [cost, setCost] = React.useState(event.costo?.toString() || '');
   const [estimatedEndDate, setEstimatedEndDate] = React.useState(event.estimatedEndDate)
@@ -133,16 +135,18 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
                     onChange={(e) => setEstimatedEndDate(e.target.value)}
                 />
             </div>
-          <div className="grid gap-2">
-            <Label htmlFor="event-cost">Cost</Label>
-            <Input
-              id="event-cost"
-              type="number"
-              value={cost}
-              onChange={(e) => setCost(e.target.value)}
-              placeholder="Enter cost if applicable"
-            />
-          </div>
+          {user?.isAdmin && (
+            <div className="grid gap-2">
+                <Label htmlFor="event-cost">Cost</Label>
+                <Input
+                id="event-cost"
+                type="number"
+                value={cost}
+                onChange={(e) => setCost(e.target.value)}
+                placeholder="Enter cost if applicable"
+                />
+            </div>
+          )}
         </div>
         <SheetFooter className="gap-2 sm:flex sm:flex-row sm:justify-between pt-4">
            <AlertDialog>

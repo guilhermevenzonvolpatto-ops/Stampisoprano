@@ -1,4 +1,6 @@
 
+'use client';
+
 import { getMold, getMolds, getComponentsForMold } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import {
@@ -19,18 +21,41 @@ import type { Mold, Component as CompType } from '@/lib/types';
 import { AdminButton } from '@/components/layout/admin-button';
 import { MoldAttachments } from './components/mold-attachments';
 import { DeleteButton } from '@/components/shared/delete-button';
+import { useApp } from '@/context/app-context';
+import { useEffect, useState } from 'react';
 
-export default async function MoldDetailPage({
+export default function MoldDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const mold = await getMold(params.id);
-  if (!mold) {
-    notFound();
-  }
+  const [mold, setMold] = useState<Mold | null>(null);
+  const [associatedComponents, setAssociatedComponents] = useState<CompType[]>([]);
+  const { user } = useApp();
 
-  const associatedComponents = await getComponentsForMold(mold.id);
+  useEffect(() => {
+    async function fetchData() {
+        const moldData = await getMold(params.id);
+        if (!moldData) {
+            notFound();
+            return;
+        }
+        setMold(moldData);
+
+        const componentsData = await getComponentsForMold(moldData.id);
+        setAssociatedComponents(componentsData);
+    }
+    fetchData();
+  }, [params.id]);
+
+
+  if (!mold) {
+      return (
+          <div className="container mx-auto py-10">
+              <p>Loading...</p>
+          </div>
+      )
+  }
 
   return (
     <RestrictedPage allowedCode={mold.codice}>
@@ -138,7 +163,7 @@ export default async function MoldDetailPage({
                     <p className="text-muted-foreground">{mold.datiTecnici.dimensioniPeso}</p>
                   </div>
                 )}
-                {mold.datiGestionali?.costoAcquisto && (
+                {user?.isAdmin && mold.datiGestionali?.costoAcquisto && (
                   <div>
                     <p className="font-semibold">Purchase Cost</p>
                     <p className="text-muted-foreground">€{mold.datiGestionali.costoAcquisto.toLocaleString()}</p>
