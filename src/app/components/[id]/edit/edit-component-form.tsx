@@ -73,7 +73,19 @@ export function EditComponentForm({ component, allMolds }: EditComponentFormProp
       peso: component.peso,
       stato: component.stato,
       associatedMolds: component.associatedMolds || [],
-      ...(component.stampingData || {}),
+      programName: component.stampingData?.programName || undefined,
+      cycleTime: component.stampingData?.cycleTime || undefined,
+      injectionTime: component.stampingData?.injectionTime || undefined,
+      holdingPressure: component.stampingData?.holdingPressure || undefined,
+      meltTemperature: component.stampingData?.meltTemperature || undefined,
+      moldTemperature: component.stampingData?.moldTemperature || undefined,
+      clampForce: component.stampingData?.clampForce || undefined,
+      injectionPressure: component.stampingData?.injectionPressure || undefined,
+      postPressure: component.stampingData?.postPressure || undefined,
+      maintenanceTime: component.stampingData?.maintenanceTime || undefined,
+      coolingTime: component.stampingData?.coolingTime || undefined,
+      counterPressure: component.stampingData?.counterPressure || undefined,
+      injectionSpeed: component.stampingData?.injectionSpeed || undefined,
     },
   });
 
@@ -315,3 +327,5 @@ export function EditComponentForm({ component, allMolds }: EditComponentFormProp
     </Form>
   );
 }
+
+    

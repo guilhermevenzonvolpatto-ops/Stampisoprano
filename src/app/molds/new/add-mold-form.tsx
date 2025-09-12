@@ -103,7 +103,7 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
                     type: values.posizioneType,
                     value: values.posizioneValue,
                 },
-                macchinaAssociata: values.macchinaAssociata === '__none__' ? null : values.macchinaAssociata,
+                macchinaAssociata: values.macchinaAssociata === '__none__' || !values.macchinaAssociata ? null : values.macchinaAssociata,
                 datiTecnici: {
                     impronte: values.impronte,
                     materialeCostruzione: values.materialeCostruzione,
@@ -400,9 +400,5 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
         </Form>
     );
 }
-
-    
-    
-    
 
     

@@ -19,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { createComponent } from '@/lib/data';
 import { useRouter } from 'next/navigation';
-import type { Mold, Component } from '@/lib/types';
+import type { Mold, Component, StampingData } from '@/lib/types';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -57,7 +57,7 @@ export function AddComponentForm({ allMolds }: AddComponentFormProps) {
       codice: '',
       descrizione: '',
       materiale: '',
-      peso: 0,
+      peso: undefined,
       associatedMolds: [],
       customFields: [],
       injectionTime: undefined,
@@ -80,7 +80,7 @@ export function AddComponentForm({ allMolds }: AddComponentFormProps) {
         return acc;
       }, {} as Record<string, string>);
       
-      const stampingData = {
+      const stampingData: StampingData = {
         injectionTime: values.injectionTime,
         holdingPressure: values.holdingPressure,
         meltTemperature: values.meltTemperature,
@@ -179,7 +179,7 @@ export function AddComponentForm({ allMolds }: AddComponentFormProps) {
                 <FormItem>
                   <FormLabel>Weight (grams)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="e.g., 85.5" {...field} />
+                    <Input type="number" placeholder="e.g., 85.5" {...field} value={field.value ?? ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -201,7 +201,7 @@ export function AddComponentForm({ allMolds }: AddComponentFormProps) {
                 <FormItem>
                   <FormLabel>Injection Time (s)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="e.g., 2.5" {...field} />
+                    <Input type="number" placeholder="e.g., 2.5" {...field} value={field.value ?? ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -214,7 +214,7 @@ export function AddComponentForm({ allMolds }: AddComponentFormProps) {
                 <FormItem>
                   <FormLabel>Holding Pressure (bar)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="e.g., 600" {...field} />
+                    <Input type="number" placeholder="e.g., 600" {...field} value={field.value ?? ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -227,7 +227,7 @@ export function AddComponentForm({ allMolds }: AddComponentFormProps) {
                 <FormItem>
                   <FormLabel>Melt Temperature (°C)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="e.g., 280" {...field} />
+                    <Input type="number" placeholder="e.g., 280" {...field} value={field.value ?? ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -240,7 +240,7 @@ export function AddComponentForm({ allMolds }: AddComponentFormProps) {
                 <FormItem>
                   <FormLabel>Clamp Force (t)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="e.g., 200" {...field} />
+                    <Input type="number" placeholder="e.g., 200" {...field} value={field.value ?? ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

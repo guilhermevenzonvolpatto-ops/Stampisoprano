@@ -102,7 +102,7 @@ export function EditMoldForm({ mold, allMolds }: EditMoldFormProps) {
               descrizione: values.descrizione,
               stato: values.stato,
               padre: values.padre === '__none__' ? null : values.padre,
-              macchinaAssociata: values.macchinaAssociata === '__none__' ? null : values.macchinaAssociata,
+              macchinaAssociata: values.macchinaAssociata === '__none__' || !values.macchinaAssociata ? null : values.macchinaAssociata,
               posizione: {
                 type: values.posizioneType,
                 value: values.posizioneValue,
@@ -287,7 +287,7 @@ export function EditMoldForm({ mold, allMolds }: EditMoldFormProps) {
                                 <FormItem>
                                 <FormLabel>Impressions</FormLabel>
                                 <FormControl>
-                                    <Input type="number" placeholder="e.g., 4" {...field} />
+                                    <Input type="number" placeholder="e.g., 4" {...field} value={field.value ?? ''} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
@@ -300,7 +300,7 @@ export function EditMoldForm({ mold, allMolds }: EditMoldFormProps) {
                                 <FormItem>
                                 <FormLabel>Construction Material</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="e.g., Steel 1.2343" {...field} />
+                                    <Input placeholder="e.g., Steel 1.2343" {...field} value={field.value ?? ''} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
@@ -313,7 +313,7 @@ export function EditMoldForm({ mold, allMolds }: EditMoldFormProps) {
                                 <FormItem>
                                 <FormLabel>Dimensions & Weight</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="e.g., 80x60x50cm - 800kg" {...field} />
+                                    <Input placeholder="e.g., 80x60x50cm - 800kg" {...field} value={field.value ?? ''} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
@@ -327,7 +327,7 @@ export function EditMoldForm({ mold, allMolds }: EditMoldFormProps) {
                                     <FormItem>
                                     <FormLabel>Purchase Cost (€)</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="e.g., 50000" {...field} />
+                                        <Input type="number" placeholder="e.g., 50000" {...field} value={field.value ?? ''} />
                                     </FormControl>
                                     <FormMessage />
                                     </FormItem>
@@ -341,7 +341,7 @@ export function EditMoldForm({ mold, allMolds }: EditMoldFormProps) {
                                 <FormItem>
                                 <FormLabel>Expected Lifetime (cycles)</FormLabel>
                                 <FormControl>
-                                    <Input type="number" placeholder="e.g., 1000000" {...field} />
+                                    <Input type="number" placeholder="e.g., 1000000" {...field} value={field.value ?? ''} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
