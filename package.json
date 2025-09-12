@@ -9,7 +9,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "seed": "node seed.js",
-    "deploy": "npm run build && firebase deploy --only hosting"
+    "deploy": "npm run build && firebase deploy --only hosting,functions"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",
