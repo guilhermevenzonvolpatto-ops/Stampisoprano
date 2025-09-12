@@ -6,18 +6,7 @@ import { RestrictedPage } from '@/components/layout/restricted-page';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 
-// Use static data for build-time generation to prevent build failures
-const usersForBuild = [
-    { id: 'guilhermevolp93' },
-    { id: 'user01' },
-    { id: 'admin' },
-];
-
-export async function generateStaticParams() {
-    return usersForBuild.map((user) => ({
-        id: user.id,
-    }));
-}
+export const dynamic = 'force-dynamic';
 
 export default async function EditUserPage({ params }: { params: { id: string } }) {
   const user = await getUser(params.id);
