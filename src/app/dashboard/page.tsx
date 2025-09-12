@@ -5,6 +5,8 @@ import { ComponentSearch } from '@/components/dashboard/component-search';
 import { QuickProductionLog } from '@/app/dashboard/quick-production-log';
 import { RestrictedPage } from '@/components/layout/restricted-page';
 
+export const dynamic = 'force-dynamic';
+
 export default function DashboardPage() {
   return (
     <RestrictedPage>
