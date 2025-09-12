@@ -13,9 +13,6 @@ const fontBody = Inter({
 export const metadata: Metadata = {
   title: 'Sopranostampi',
   description: 'Gestione Stampi Avanzata',
-  icons: {
-    icon: 'data:;base64,iVBORw0KGgo=',
-  }
 };
 
 export default function RootLayout({
