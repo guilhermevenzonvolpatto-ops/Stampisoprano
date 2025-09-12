@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
@@ -22,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="it" suppressHydrationWarning>
-      <head/>
+      <head></head>
       <body className={`${fontBody.variable} font-sans antialiased`}>
         <AppProvider>
           <div className="relative flex min-h-screen flex-col bg-background">
