@@ -1,7 +1,7 @@
 
 'use client';
 import * as React from 'react';
-import type { Mold } from '@/lib/types';
+import type { Attachment, Mold } from '@/lib/types';
 import { useApp } from '@/context/app-context';
 import {
   Card,
@@ -11,8 +11,21 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { UploadCloud, File, FileText, Trash2, Image as ImageIcon, FileArchive, Eye } from 'lucide-react';
+import { UploadCloud, File, FileText, Trash2, Image as ImageIcon, FileArchive, Eye, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { deleteAttachment, uploadFileAndCreateAttachment } from '@/lib/data';
+import { useRouter } from 'next/navigation';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface MoldAttachmentsProps {
   mold: Mold;
@@ -30,34 +43,59 @@ const getFileIcon = (fileType: string) => {
 export function MoldAttachments({ mold }: MoldAttachmentsProps) {
   const { user } = useApp();
   const { toast } = useToast();
+  const router = useRouter();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const contentRef = React.useRef<HTMLDivElement>(null);
+  const [isUploading, setIsUploading] = React.useState(false);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      // Here you would typically call a server action to upload the file to cloud storage.
-      // For this demo, we'll just show a success toast.
-      console.log('Uploading file:', file.name);
-      toast({
-        title: 'Upload Started',
-        description: `Uploading "${file.name}"... (This is a placeholder action)`,
-      });
-      // To see changes, you would need to update the mock data and revalidate the path.
+    if (!file) return;
+
+    setIsUploading(true);
+    toast({
+      title: 'Upload Started',
+      description: `Uploading "${file.name}"...`,
+    });
+
+    const result = await uploadFileAndCreateAttachment(mold.id, 'mold', file);
+
+    setIsUploading(false);
+
+    if (result.success) {
+        toast({
+            title: 'Upload Successful',
+            description: `"${file.name}" has been attached to the mold.`,
+        });
+        router.refresh();
+    } else {
+        toast({
+            title: 'Upload Failed',
+            description: result.error || 'An unexpected error occurred.',
+            variant: 'destructive',
+        });
     }
   };
 
-  const handleDelete = (attachmentId: string) => {
-    // Placeholder for delete functionality
-    toast({
-        title: 'Delete Action',
-        description: `Preparing to delete attachment ${attachmentId}. (This is a placeholder action)`,
-        variant: 'destructive'
+  const handleDelete = async (attachment: Attachment) => {
+    const result = await deleteAttachment(mold.id, 'mold', attachment);
+    if (result.success) {
+      toast({
+        title: 'Attachment Deleted',
+        description: `"${attachment.fileName}" has been removed.`,
       });
+      router.refresh();
+    } else {
+       toast({
+        title: 'Error Deleting File',
+        description: result.error || 'Could not delete the attachment.',
+        variant: 'destructive',
+      });
+    }
   }
   
   const handleViewDrawing = () => {
@@ -82,9 +120,13 @@ export function MoldAttachments({ mold }: MoldAttachmentsProps) {
             )}
             {user?.isAdmin && (
                 <>
-                    <Button variant="outline" onClick={handleUploadClick}>
-                        <UploadCloud className="mr-2 h-4 w-4" />
-                        Upload File
+                    <Button variant="outline" onClick={handleUploadClick} disabled={isUploading}>
+                        {isUploading ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                            <UploadCloud className="mr-2 h-4 w-4" />
+                        )}
+                        {isUploading ? 'Uploading...' : 'Upload File'}
                     </Button>
                     <input
                         type="file"
@@ -92,6 +134,7 @@ export function MoldAttachments({ mold }: MoldAttachmentsProps) {
                         onChange={handleFileChange}
                         className="hidden"
                         accept=".pdf,.step,.stp,.iges,.igs,.jpg,.jpeg,.png,.doc,.docx"
+                        disabled={isUploading}
                     />
                 </>
             )}
@@ -114,9 +157,25 @@ export function MoldAttachments({ mold }: MoldAttachmentsProps) {
                   </div>
                 </div>
                 {user?.isAdmin && (
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(file.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                       <Button variant="ghost" size="icon">
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                       </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action will permanently delete the file <span className="font-semibold">{file.fileName}</span> from storage. This cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDelete(file)}>Delete</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 )}
               </li>
             ))}

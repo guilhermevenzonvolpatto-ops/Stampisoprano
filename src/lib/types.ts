@@ -5,7 +5,6 @@ export interface User {
   name: string;
   isAdmin: boolean;
   allowedCodes: string[];
-  allowedMachines: string[];
 }
 
 export interface Attachment {
@@ -14,6 +13,7 @@ export interface Attachment {
   fileType: '3D' | 'PDF' | 'Image' | 'Document';
   url: string;
   uploadedAt: string;
+  storagePath: string;
 }
 
 export interface Mold {
@@ -137,5 +137,3 @@ export type ComponentScrapRate = {
     componentCode: string;
     scrapRate: number;
 }
-
-    

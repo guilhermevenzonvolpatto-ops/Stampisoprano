@@ -16,9 +16,13 @@ import {
   deleteDoc,
   increment,
   runTransaction,
+  arrayUnion,
+  arrayRemove,
 } from 'firebase/firestore';
-import { db } from './firebase';
-import type { Mold, Component, MoldEvent, User, ProductionLog, StampingDataHistoryEntry, StampingData, Machine } from './types';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { db, app } from './firebase';
+import type { Mold, Component, MoldEvent, User, ProductionLog, StampingDataHistoryEntry, StampingData, Machine, Attachment } from './types';
+import { v4 as uuidv4 } from 'uuid';
 
 
 const usersCol = collection(db, 'users');
@@ -28,6 +32,7 @@ const eventsCol = collection(db, 'events');
 const productionLogsCol = collection(db, 'productionLogs');
 const stampingHistoryCol = collection(db, 'stampingHistory');
 const machinesCol = collection(db, 'machines');
+const storage = getStorage(app);
 
 
 const docToUser = (doc: any): User => {
@@ -353,7 +358,9 @@ export const getProductionLogsForComponent = async (componentId: string): Promis
 export const getStampingHistoryForComponent = async (componentId: string): Promise<StampingDataHistoryEntry[]> => {
     const q = query(stampingHistoryCol, where('componentId', '==', componentId), orderBy('timestamp', 'desc'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(docToStampingDataHistoryEntry);
+    // return snapshot.docs.map(docToStampingDataHistoryEntry);
+    const entries = snapshot.docs.map(docToStampingDataHistoryEntry);
+    return entries.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 };
 
 export const updateProductionLog = async (id: string, updates: Partial<ProductionLog>): Promise<ProductionLog | null> => {
@@ -482,4 +489,69 @@ export const createEvent = async (eventData: Omit<MoldEvent, 'id' | 'timestamp' 
     };
 }
 
-    
+
+const getFileType = (fileName: string): Attachment['fileType'] => {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    if (!extension) return 'Document';
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(extension)) return 'Image';
+    if (['pdf'].includes(extension)) return 'PDF';
+    if (['step', 'stp', 'iges', 'igs', 'x_t', 'x_b'].includes(extension)) return '3D';
+    return 'Document';
+}
+
+export async function uploadFileAndCreateAttachment(
+    itemId: string,
+    itemType: 'mold' | 'component',
+    file: File
+): Promise<{ success: boolean; error?: string }> {
+    try {
+        const storagePath = `${itemType}s/${itemId}/${file.name}`;
+        const storageRef = ref(storage, storagePath);
+
+        const snapshot = await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(snapshot.ref);
+
+        const newAttachment: Attachment = {
+            id: uuidv4(),
+            fileName: file.name,
+            fileType: getFileType(file.name),
+            url: downloadURL,
+            uploadedAt: new Date().toISOString(),
+            storagePath: storagePath
+        };
+
+        const docRef = doc(db, `${itemType}s`, itemId);
+        await updateDoc(docRef, {
+            attachments: arrayUnion(newAttachment)
+        });
+
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error uploading file:", error);
+        return { success: false, error: error.message };
+    }
+}
+
+
+export async function deleteAttachment(
+    itemId: string,
+    itemType: 'mold' | 'component',
+    attachment: Attachment
+): Promise<{ success: boolean; error?: string }> {
+     try {
+        if (attachment.storagePath) {
+            const storageRef = ref(storage, attachment.storagePath);
+            await deleteObject(storageRef);
+        }
+
+        const docRef = doc(db, `${itemType}s`, itemId);
+        await updateDoc(docRef, {
+            attachments: arrayRemove(attachment)
+        });
+
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error deleting file:", error);
+        return { success: false, error: error.message };
+    }
+}

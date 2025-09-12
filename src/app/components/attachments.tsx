@@ -1,7 +1,7 @@
 
 'use client';
 import * as React from 'react';
-import type { Component } from '@/lib/types';
+import type { Attachment, Component } from '@/lib/types';
 import { useApp } from '@/context/app-context';
 import {
   Card,
@@ -11,8 +11,21 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { UploadCloud, File, FileText, Image as ImageIcon, FileArchive, Trash2, Eye } from 'lucide-react';
+import { UploadCloud, File, FileText, Image as ImageIcon, FileArchive, Trash2, Eye, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { uploadFileAndCreateAttachment, deleteAttachment } from '@/lib/data';
+import { useRouter } from 'next/navigation';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface ComponentAttachmentsProps {
   component: Component;
@@ -30,30 +43,59 @@ const getFileIcon = (fileType: string) => {
 export function ComponentAttachments({ component }: ComponentAttachmentsProps) {
   const { user } = useApp();
   const { toast } = useToast();
+  const router = useRouter();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const contentRef = React.useRef<HTMLDivElement>(null);
+  const [isUploading, setIsUploading] = React.useState(false);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      console.log('Uploading file:', file.name);
+    if (!file) return;
+
+    setIsUploading(true);
+    toast({
+      title: 'Upload Started',
+      description: `Uploading "${file.name}"...`,
+    });
+
+    const result = await uploadFileAndCreateAttachment(component.id, 'component', file);
+
+    setIsUploading(false);
+
+    if (result.success) {
       toast({
-        title: 'Upload Started',
-        description: `Uploading "${file.name}"... (This is a placeholder action)`,
+        title: 'Upload Successful',
+        description: `"${file.name}" has been attached to the component.`,
+      });
+      router.refresh();
+    } else {
+      toast({
+        title: 'Upload Failed',
+        description: result.error || 'An unexpected error occurred.',
+        variant: 'destructive',
       });
     }
   };
 
-  const handleDelete = (attachmentId: string) => {
-    toast({
-        title: 'Delete Action',
-        description: `Preparing to delete attachment ${attachmentId}. (This is a placeholder action)`,
-        variant: 'destructive'
+  const handleDelete = async (attachment: Attachment) => {
+    const result = await deleteAttachment(component.id, 'component', attachment);
+    if (result.success) {
+      toast({
+        title: 'Attachment Deleted',
+        description: `"${attachment.fileName}" has been removed.`,
       });
+      router.refresh();
+    } else {
+      toast({
+        title: 'Error Deleting File',
+        description: result.error || 'Could not delete the attachment.',
+        variant: 'destructive',
+      });
+    }
   }
 
   const handleViewDrawing = () => {
@@ -78,15 +120,20 @@ export function ComponentAttachments({ component }: ComponentAttachmentsProps) {
             )}
             {user?.isAdmin && (
                 <>
-                    <Button variant="outline" onClick={handleUploadClick}>
-                        <UploadCloud className="mr-2 h-4 w-4" />
-                        Upload File
+                    <Button variant="outline" onClick={handleUploadClick} disabled={isUploading}>
+                        {isUploading ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                            <UploadCloud className="mr-2 h-4 w-4" />
+                        )}
+                        {isUploading ? 'Uploading...' : 'Upload File'}
                     </Button>
                     <input
                         type="file"
                         ref={fileInputRef}
                         onChange={handleFileChange}
                         className="hidden"
+                        disabled={isUploading}
                     />
                 </>
             )}
@@ -109,9 +156,25 @@ export function ComponentAttachments({ component }: ComponentAttachmentsProps) {
                   </div>
                 </div>
                 {user?.isAdmin && (
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(file.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                     <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                           <Button variant="ghost" size="icon">
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                           </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This action will permanently delete the file <span className="font-semibold">{file.fileName}</span> from storage. This cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(file)}>Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                 )}
               </li>
             ))}

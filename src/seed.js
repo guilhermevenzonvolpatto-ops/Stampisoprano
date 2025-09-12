@@ -13,9 +13,9 @@ const db = admin.firestore();
 console.log('Firebase Admin Initialized.');
 
 const users = {
-    'guilhermevolp93': { id: 'guilhermevolp93', name: 'Guilherme Volpato', isAdmin: true, allowedCodes: [], allowedMachines: [] },
-    'user01': { id: 'user01', name: 'Normal User', isAdmin: false, allowedCodes: ['ST-001', 'COMP-A1'], allowedMachines: ['MAC-01'] },
-    'admin': { id: 'admin', name: 'Admin User', isAdmin: true, allowedCodes: [], allowedMachines: [] },
+    'guilhermevolp93': { id: 'guilhermevolp93', name: 'Guilherme Volpato', isAdmin: true, allowedCodes: [] },
+    'user01': { id: 'user01', name: 'Normal User', isAdmin: false, allowedCodes: ['ST-001', 'COMP-A1'] },
+    'admin': { id: 'admin', name: 'Admin User', isAdmin: true, allowedCodes: [] },
 };
 
 const molds = {
@@ -27,8 +27,8 @@ const molds = {
     macchinaAssociata: 'MAC-01',
     customFields: { 'Codice Progetto': 'PRJ-2024-44', 'Centro di Costo': 'CC-0123' },
     attachments: [
-        { id: 'ATT001', fileName: 'Disegno_Tecnico_Rev2.pdf', fileType: 'PDF', url: '#', uploadedAt: '2024-03-15' },
-        { id: 'ATT002', fileName: 'Modello_3D_v1.step', fileType: '3D', url: '#', uploadedAt: '2024-03-18' },
+        { id: 'ATT001', fileName: 'Disegno_Tecnico_Rev2.pdf', fileType: 'PDF', url: '#', uploadedAt: '2024-03-15', storagePath: 'molds/ST-001/Disegno_Tecnico_Rev2.pdf' },
+        { id: 'ATT002', fileName: 'Modello_3D_v1.step', fileType: '3D', url: '#', uploadedAt: '2024-03-18', storagePath: 'molds/ST-001/Modello_3D_v1.step' },
     ]
   },
   'ST-001-A': {
