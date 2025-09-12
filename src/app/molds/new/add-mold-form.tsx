@@ -37,7 +37,7 @@ const customFieldSchema = z.object({
 });
 
 const formSchema = z.object({
-  codice: z.string().min(1, 'Code is required.'),
+  codice: z.string().min(1, 'Code is required.').regex(/^\S*$/, 'Spaces are not allowed in the code.'),
   descrizione: z.string().min(1, 'Description is required.'),
   padre: z.string().optional(),
   posizioneType: z.enum(['interna', 'esterna']),
@@ -397,4 +397,5 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
     );
 }
 
+    
     
