@@ -1,19 +1,15 @@
-
 {
   "name": "nextn",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build:firebase": "next build",
-    "build:gh": "next build",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "seed": "node seed.js",
-    "deploy": "npm run build:firebase && firebase deploy --only hosting",
-    "deploy:gh": "npm run build:gh && gh-pages -d out -r https://github.com/guilhermevenzonvolpatto-ops/Sopranostampi.git"
+    "deploy": "npm run build && firebase deploy --only hosting"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",

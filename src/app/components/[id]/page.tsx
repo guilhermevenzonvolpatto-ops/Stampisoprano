@@ -19,21 +19,6 @@ import { ProductionHistory } from '../production-history';
 import { AdminButton } from '@/components/layout/admin-button';
 import { StampingHistory } from './stamping-history';
 
-// Use static data for build-time generation to prevent build failures
-const componentsForBuild = [
-  { id: 'COMP-A1' },
-  { id: 'COMP-B2' },
-  { id: 'COMP-C3' },
-];
-
-export async function generateStaticParams() {
-  // In a real app, you might fetch this from a CMS or a lightweight API
-  // For this project, we use a static list to ensure build stability
-  return componentsForBuild.map((component) => ({
-    id: component.id,
-  }));
-}
-
 export default async function ComponentDetailPage({
   params,
 }: {

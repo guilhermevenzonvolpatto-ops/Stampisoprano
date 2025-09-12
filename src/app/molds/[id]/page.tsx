@@ -19,23 +19,6 @@ import type { Mold, Component as CompType } from '@/lib/types';
 import { AdminButton } from '@/components/layout/admin-button';
 import { MoldAttachments } from './components/mold-attachments';
 
-// Use static data for build-time generation to prevent build failures
-const moldsForBuild = [
-    { id: 'ST-001' },
-    { id: 'ST-001-A' },
-    { id: 'ST-002' },
-    { id: 'ST-003' },
-    { id: 'ST-004' },
-];
-
-export async function generateStaticParams() {
-  // In a real app, you might fetch this from a CMS or a lightweight API
-  // For this project, we use a static list to ensure build stability
-  return moldsForBuild.map((mold) => ({
-    id: mold.id,
-  }));
-}
-
 export default async function MoldDetailPage({
   params,
 }: {

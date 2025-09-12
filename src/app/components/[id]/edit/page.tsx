@@ -6,8 +6,6 @@ import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import { RestrictedPage } from '@/components/layout/restricted-page';
 
-export const dynamic = 'force-dynamic';
-
 export default async function EditComponentPage({ params }: { params: { id: string } }) {
   const componentToEdit = await getComponent(params.id);
   if (!componentToEdit) {

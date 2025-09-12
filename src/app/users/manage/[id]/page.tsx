@@ -6,8 +6,6 @@ import { RestrictedPage } from '@/components/layout/restricted-page';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
-
 export default async function EditUserPage({ params }: { params: { id: string } }) {
   const user = await getUser(params.id);
   if (!user) {
