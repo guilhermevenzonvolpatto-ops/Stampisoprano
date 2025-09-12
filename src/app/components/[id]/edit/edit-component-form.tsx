@@ -85,19 +85,19 @@ export function EditComponentForm({ component, allMolds }: EditComponentFormProp
 
     try {
         const stampingData: StampingData = {
-            programName: values.programName,
-            cycleTime: values.cycleTime,
-            injectionTime: values.injectionTime,
-            holdingPressure: values.holdingPressure,
-            meltTemperature: values.meltTemperature,
-            moldTemperature: values.moldTemperature,
-            clampForce: values.clampForce,
-            injectionPressure: values.injectionPressure,
-            postPressure: values.postPressure,
-            maintenanceTime: values.maintenanceTime,
-            coolingTime: values.coolingTime,
-            counterPressure: values.counterPressure,
-            injectionSpeed: values.injectionSpeed,
+            programName: values.programName || '',
+            cycleTime: values.cycleTime ?? 0,
+            injectionTime: values.injectionTime ?? 0,
+            holdingPressure: values.holdingPressure ?? 0,
+            meltTemperature: values.meltTemperature ?? 0,
+            moldTemperature: values.moldTemperature ?? 0,
+            clampForce: values.clampForce ?? 0,
+            injectionPressure: values.injectionPressure ?? 0,
+            postPressure: values.postPressure ?? 0,
+            maintenanceTime: values.maintenanceTime ?? 0,
+            coolingTime: values.coolingTime ?? 0,
+            counterPressure: values.counterPressure ?? 0,
+            injectionSpeed: values.injectionSpeed ?? 0,
         };
 
         const componentData: Partial<Component> = {
