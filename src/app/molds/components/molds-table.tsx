@@ -202,7 +202,7 @@ export function MoldsTable({ data }: MoldsTableProps) {
             {mold.stato}
           </Badge>
         </TableCell>
-        <TableCell>{mold.data}</TableCell>
+        <TableCell>{mold.availableAt || 'N/A'}</TableCell>
         <TableCell className="text-right space-x-2">
             <Button asChild variant="outline" size="sm">
                 <Link href={`/molds/${mold.id}`}>View Details</Link>
@@ -309,7 +309,7 @@ export function MoldsTable({ data }: MoldsTableProps) {
                 <TableHead>Location</TableHead>
                 <TableHead>Supplier</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Created</TableHead>
+                <TableHead>Available at</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>

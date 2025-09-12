@@ -47,6 +47,7 @@ export interface Mold {
   customFields?: Record<string, any>;
   attachments?: Attachment[];
   children?: Mold[];
+  availableAt?: string;
 }
 
 export interface StampingData {
