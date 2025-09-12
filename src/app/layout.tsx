@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   description: 'Gestione Stampi Avanzata',
 };
 
-// This prevents Next.js from trying to generate a static page for /favicon.ico
+// This prevents Next.js from trying to generate a static page for routes like /favicon.ico
 export async function generateStaticParams() {
   return [];
 }

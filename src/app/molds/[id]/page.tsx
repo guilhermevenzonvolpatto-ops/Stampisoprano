@@ -29,6 +29,8 @@ const moldsForBuild = [
 ];
 
 export async function generateStaticParams() {
+  // In a real app, you might fetch this from a CMS or a lightweight API
+  // For this project, we use a static list to ensure build stability
   return moldsForBuild.map((mold) => ({
     id: mold.id,
   }));
