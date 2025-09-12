@@ -50,9 +50,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [router, pathname]);
 
   React.useEffect(() => {
-    const storedLang = localStorage.getItem('language');
-    if (storedLang && (storedLang === 'en' || storedLang === 'it')) {
+    const storedLang = localStorage.getItem('language') as Locale | null;
+    if (storedLang && ['en', 'it'].includes(storedLang)) {
       setLanguage(storedLang);
+      if (document.documentElement) {
+        document.documentElement.lang = storedLang;
+      }
     }
 
     const activeUserCode = sessionStorage.getItem('activeUser');
