@@ -1,17 +1,26 @@
 
+
 'use client';
 
 import { getUser } from '@/lib/data';
 import type { User } from '@/lib/types';
 import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
+import en from '@/locales/en.json';
+import it from '@/locales/it.json';
+
+type Locale = 'en' | 'it';
+type Translations = typeof en;
+
+const translations = { en, it };
 
 type AppContextType = {
   user: User | null;
-  language: 'en' | 'it';
-  setLanguage: (lang: 'en' | 'it') => void;
+  language: Locale;
+  setLanguage: (lang: Locale) => void;
   loginAs: (userCode: string) => Promise<boolean>;
   logout: () => void;
+  t: (key: keyof Translations) => string;
 };
 
 const AppContext = React.createContext<AppContextType | undefined>(undefined);
@@ -26,21 +35,26 @@ function FullPageSpinner() {
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<User | null>(null);
-  const [language, setLanguage] = React.useState<'en' | 'it'>('en');
+  const [language, setLanguage] = React.useState<Locale>('en');
   const [isLoading, setIsLoading] = React.useState(true); // Start in loading state
   const router = useRouter();
   const pathname = usePathname();
   
   const logout = React.useCallback(() => {
     sessionStorage.removeItem('activeUser');
+    localStorage.removeItem('language');
     setUser(null);
     if (pathname !== '/') {
         router.push('/');
     }
   }, [router, pathname]);
 
-
   React.useEffect(() => {
+    const storedLang = localStorage.getItem('language');
+    if (storedLang && (storedLang === 'en' || storedLang === 'it')) {
+      setLanguage(storedLang);
+    }
+
     const activeUserCode = sessionStorage.getItem('activeUser');
     if (activeUserCode) {
       getUser(activeUserCode)
@@ -48,7 +62,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           if (user) {
             setUser(user);
           } else {
-            // User in session storage not found in db, so log out
             logout();
           }
         })
@@ -59,7 +72,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setIsLoading(false);
         });
     } else {
-      // No user in session storage
       setIsLoading(false);
     }
   }, [logout]);
@@ -86,13 +98,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return false;
   };
 
-  const value = { user, language, setLanguage, loginAs, logout };
+  const handleSetLanguage = (lang: Locale) => {
+    setLanguage(lang);
+    localStorage.setItem('language', lang);
+  }
+
+  const t = (key: keyof Translations) => {
+    return translations[language][key] || translations['en'][key] || key;
+  };
+
+  const value = { user, language, setLanguage: handleSetLanguage, loginAs, logout, t };
 
   if (isLoading) {
       return <FullPageSpinner />;
   }
 
-  // Prevent flicker on initial load / redirect
   if (!user && pathname !== '/') {
     return <FullPageSpinner />;
   }
@@ -101,7 +121,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return <FullPageSpinner />;
   }
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+  return (
+    <AppContext.Provider value={value}>
+        <html lang={language} suppressHydrationWarning>
+            {children}
+        </html>
+    </AppContext.Provider>
+  );
 }
 
 export function useApp() {

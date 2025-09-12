@@ -9,6 +9,7 @@ import type { Component, Mold } from '@/lib/types';
 import Link from 'next/link';
 import { Badge } from '../ui/badge';
 import { Skeleton } from '../ui/skeleton';
+import { useApp } from '@/context/app-context';
 
 export function ComponentSearch() {
   const [components, setComponents] = React.useState<Component[]>([]);
@@ -16,6 +17,7 @@ export function ComponentSearch() {
   const [selectedComponent, setSelectedComponent] = React.useState<Component | null>(null);
   const [associatedMolds, setAssociatedMolds] = React.useState<Mold[]>([]);
   const [loadingMolds, setLoadingMolds] = React.useState(false);
+  const { t } = useApp();
 
   React.useEffect(() => {
     getComponents().then((data) => {
@@ -62,15 +64,15 @@ export function ComponentSearch() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Associated Mold Finder</CardTitle>
-        <CardDescription>Search for a component to find the molds that can produce it.</CardDescription>
+        <CardTitle>{t('associatedMoldFinder')}</CardTitle>
+        <CardDescription>{t('searchComponentToFindMolds')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <h4 className="font-medium mb-2 text-sm">1. Search & Select Component</h4>
+            <h4 className="font-medium mb-2 text-sm">{t('searchAndSelectComponent')}</h4>
             <Input
-              placeholder="Search by code or description..."
+              placeholder={t('searchByCodeOrDescription')}
               onChange={handleSearch}
               className="mb-2"
             />
@@ -96,7 +98,7 @@ export function ComponentSearch() {
             </ScrollArea>
           </div>
           <div>
-            <h4 className="font-medium mb-2 text-sm">2. Associated Molds</h4>
+            <h4 className="font-medium mb-2 text-sm">{t('associatedMoldsTitle')}</h4>
             <div className="h-48 rounded-md border p-2 space-y-2">
                 {loadingMolds && (
                     <div className="space-y-2">
@@ -107,12 +109,12 @@ export function ComponentSearch() {
                 )}
                 {!loadingMolds && !selectedComponent && (
                     <div className="flex items-center justify-center h-full text-center text-sm text-muted-foreground">
-                        <p>Select a component to see its associated molds.</p>
+                        <p>{t('selectComponentToSeeMolds')}</p>
                     </div>
                 )}
                  {!loadingMolds && selectedComponent && associatedMolds.length === 0 && (
                     <div className="flex items-center justify-center h-full text-center text-sm text-muted-foreground">
-                        <p>No molds associated with this component.</p>
+                        <p>{t('noMoldsAssociated')}</p>
                     </div>
                 )}
                 {!loadingMolds && associatedMolds.length > 0 && (
@@ -137,5 +139,3 @@ export function ComponentSearch() {
     </Card>
   );
 }
-
-    

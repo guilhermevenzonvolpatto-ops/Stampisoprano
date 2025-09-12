@@ -12,7 +12,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { useApp } from '@/context/app-context';
 import { useRouter } from 'next/navigation';
-import { Skeleton } from '@/components/ui/skeleton';
 
 export function QuickProductionLog() {
   const [component, setComponent] = React.useState<Component | null>(null);
@@ -21,7 +20,7 @@ export function QuickProductionLog() {
   const [isSaving, setIsSaving] = React.useState(false);
   const [allComponents, setAllComponents] = React.useState<Component[]>([]);
   const { toast } = useToast();
-  const { user } = useApp();
+  const { user, t } = useApp();
   const router = useRouter();
 
   React.useEffect(() => {
@@ -37,7 +36,6 @@ export function QuickProductionLog() {
         return;
     }
     
-    // Auto-select if a perfect match is found
     const foundComponent = allComponents.find(c => c.codice.toLowerCase() === term.toLowerCase());
     if (foundComponent) {
         setComponent(foundComponent);
@@ -66,8 +64,8 @@ export function QuickProductionLog() {
         });
         
         toast({
-        title: 'Production Logged',
-        description: `Production data for ${component.codice} has been saved.`,
+            title: t('productionLogged'),
+            description: t('productionDataSaved').replace('{componentCode}', component.codice),
         });
         
         router.refresh();
@@ -77,8 +75,8 @@ export function QuickProductionLog() {
         (e.target as HTMLFormElement).reset();
     } catch(error) {
         toast({
-            title: 'Error',
-            description: 'Failed to log production data.',
+            title: t('error'),
+            description: t('failedToLogProduction'),
             variant: 'destructive'
         })
     } finally {
@@ -89,17 +87,17 @@ export function QuickProductionLog() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Quick Production Log</CardTitle>
-        <CardDescription>Quickly log production runs for any component.</CardDescription>
+        <CardTitle>{t('quickProductionLog')}</CardTitle>
+        <CardDescription>{t('quickLogProductionRuns')}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <div>
-            <Label htmlFor="quick-log-search-input">Search Component by Code</Label>
+            <Label htmlFor="quick-log-search-input">{t('searchComponentByCode')}</Label>
             <div className="mt-1 relative">
               <Input
                 id="quick-log-search-input"
-                placeholder="Start typing component code..."
+                placeholder={t('startTypingComponentCode')}
                 value={searchTerm}
                 onChange={handleSearch}
                 className="peer"
@@ -115,7 +113,7 @@ export function QuickProductionLog() {
               className="border-t pt-4 space-y-3 animate-in fade-in-50"
             >
               <p className="font-semibold">
-                Logging for:{' '}
+                {t('loggingFor')}{' '}
                 <span className="font-mono bg-muted px-2 py-1 rounded">
                   {component.codice}
                 </span>{' '}
@@ -123,7 +121,7 @@ export function QuickProductionLog() {
               </p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="quick-log-good">Good Pieces</Label>
+                  <Label htmlFor="quick-log-good">{t('goodPieces')}</Label>
                   <Input
                     type="number"
                     id="quick-log-good"
@@ -134,7 +132,7 @@ export function QuickProductionLog() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="quick-log-scrapped">Scrapped Pieces</Label>
+                  <Label htmlFor="quick-log-scrapped">{t('scrappedPieces')}</Label>
                   <Input
                     type="number"
                     id="quick-log-scrapped"
@@ -146,7 +144,7 @@ export function QuickProductionLog() {
                 </div>
               </div>
               <div>
-                <Label htmlFor="quick-log-scrap-reason">Scrap Reason (optional)</Label>
+                <Label htmlFor="quick-log-scrap-reason">{t('scrapReasonOptional')}</Label>
                 <Textarea
                   id="quick-log-scrap-reason"
                   name="scrap-reason"
@@ -156,17 +154,17 @@ export function QuickProductionLog() {
               <div className="text-right">
                 <Button type="submit" disabled={isSaving}>
                     {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {isSaving ? 'Saving...' : 'Save Log'}
+                    {isSaving ? t('saving') : t('saveLog')}
                 </Button>
               </div>
             </form>
           ) : searchTerm ? (
             <div className="text-center text-sm text-muted-foreground pt-4 border-t">
-                <p>No component found for code <span className="font-mono bg-muted px-1.5 py-0.5 rounded">{searchTerm}</span>.</p>
+                <p>{t('noComponentFoundForCode')} <span className="font-mono bg-muted px-1.5 py-0.5 rounded">{searchTerm}</span>.</p>
             </div>
           ) : (
              <div className="text-center text-sm text-muted-foreground pt-4 border-t">
-                <p>Enter a component code to begin logging.</p>
+                <p>{t('enterComponentCodeToBegin')}</p>
             </div>
           )}
         </div>
@@ -174,5 +172,3 @@ export function QuickProductionLog() {
     </Card>
   );
 }
-
-    

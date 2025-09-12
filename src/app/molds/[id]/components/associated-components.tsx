@@ -1,7 +1,7 @@
 
 'use client';
 import * as React from 'react';
-import type { Component, Mold } from '@/lib/types';
+import type { Component } from '@/lib/types';
 import Link from 'next/link';
 import {
   Card,
@@ -21,7 +21,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { useApp } from '@/context/app-context';
-import { AdminButton } from '@/components/layout/admin-button';
 import { AddOrSelectComponentDialog } from './add-or-select-component-dialog';
 import { getComponents } from '@/lib/data';
 
@@ -32,7 +31,7 @@ interface AssociatedComponentsProps {
 }
 
 export function AssociatedComponents({ components, moldId, onUpdate }: AssociatedComponentsProps) {
-  const { user } = useApp();
+  const { user, t } = useApp();
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [allComponents, setAllComponents] = React.useState<Component[]>([]);
 
@@ -57,11 +56,11 @@ export function AssociatedComponents({ components, moldId, onUpdate }: Associate
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Associated Components</CardTitle>
+          <CardTitle>{t('associatedComponents')}</CardTitle>
           {user.isAdmin && (
              <Button variant="outline" size="sm" onClick={() => setIsDialogOpen(true)}>
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Add Component
+                {t('addComponent')}
             </Button>
           )}
         </CardHeader>
@@ -70,11 +69,11 @@ export function AssociatedComponents({ components, moldId, onUpdate }: Associate
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Material</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead><span className="sr-only">Actions</span></TableHead>
+                  <TableHead>{t('code')}</TableHead>
+                  <TableHead>{t('description')}</TableHead>
+                  <TableHead>{t('material')}</TableHead>
+                  <TableHead>{t('status')}</TableHead>
+                  <TableHead><span className="sr-only">{t('actions')}</span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -90,7 +89,7 @@ export function AssociatedComponents({ components, moldId, onUpdate }: Associate
                     </TableCell>
                     <TableCell className="text-right">
                       <Button asChild variant="outline" size="sm">
-                          <Link href={`/components/${c.id}`}>View</Link>
+                          <Link href={`/components/${c.id}`}>{t('viewDetails')}</Link>
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -98,7 +97,7 @@ export function AssociatedComponents({ components, moldId, onUpdate }: Associate
               </TableBody>
             </Table>
           ) : (
-              <p className="text-sm text-center text-muted-foreground py-8">No components associated with this mold.</p>
+              <p className="text-sm text-center text-muted-foreground py-8">{t('noComponentsAssociated')}</p>
           )}
         </CardContent>
       </Card>

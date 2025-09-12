@@ -28,17 +28,15 @@ interface DeleteButtonProps {
 }
 
 export function DeleteButton({ itemId, itemType, itemName, redirectPath }: DeleteButtonProps) {
-    const { user } = useApp();
+    const { user, t } = useApp();
     const { toast } = useToast();
     const router = useRouter();
 
     const handleDelete = async () => {
         try {
-            if (itemType === 'mold') {
-                await deleteMold(itemId);
-            } else {
-                await deleteComponent(itemId);
-            }
+            const deleteAction = itemType === 'mold' ? deleteMold : deleteComponent;
+            await deleteAction(itemId);
+            
             toast({
                 title: `${itemType.charAt(0).toUpperCase() + itemType.slice(1)} Archived`,
                 description: `"${itemName}" has been successfully archived.`,
@@ -47,7 +45,7 @@ export function DeleteButton({ itemId, itemType, itemName, redirectPath }: Delet
             router.refresh();
         } catch (error) {
             toast({
-                title: 'Error',
+                title: t('error'),
                 description: `Could not archive the ${itemType}.`,
                 variant: 'destructive',
             });
@@ -63,19 +61,19 @@ export function DeleteButton({ itemId, itemType, itemName, redirectPath }: Delet
             <AlertDialogTrigger asChild>
                 <Button variant="destructive" size="sm">
                     <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
+                    {t('delete')}
                 </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogTitle>{t('areYouSure')}</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action will archive the {itemType} "{itemName}". It will be hidden from view but not permanently deleted.
+                        {t('archiveWarning').replace('{itemType}', itemType)}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete}>Confirm</AlertDialogAction>
+                    <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete}>{t('archive')}</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

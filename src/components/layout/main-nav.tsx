@@ -10,14 +10,14 @@ import { useApp } from '@/context/app-context';
 
 export function MainNav() {
   const pathname = usePathname();
-  const { user } = useApp();
+  const { user, t } = useApp();
 
   const routes = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/molds', label: 'Molds', icon: Package },
-    { href: '/components', label: 'Components', icon: ComponentIcon },
-    { href: '/machines', label: 'Machines', icon: HardHat, admin: true },
-    { href: '/users/manage', label: 'Users', icon: Users, admin: true },
+    { href: '/dashboard', label: t('dashboard'), icon: LayoutDashboard },
+    { href: '/molds', label: t('molds'), icon: Package },
+    { href: '/components', label: t('components'), icon: ComponentIcon },
+    { href: '/machines', label: t('machines'), icon: HardHat, admin: true },
+    { href: '/users/manage', label: t('users'), icon: Users, admin: true },
   ];
 
   return (
@@ -40,7 +40,7 @@ export function MainNav() {
           <path d="M2.5 8.5V15.5" />
           <path d="M17 6L7 11" />
         </svg>
-        <span className="hidden font-bold sm:inline-block">Mold Manager</span>
+        <span className="hidden font-bold sm:inline-block">{t('moldManager')}</span>
       </Link>
       <nav className="flex items-center gap-4 text-sm lg:gap-6">
         {routes.map((route) => {

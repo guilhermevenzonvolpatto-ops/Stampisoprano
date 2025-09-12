@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import * as React from 'react';
 import type { MoldEvent } from '@/lib/types';
+import { useApp } from '@/context/app-context';
 
 function getEventTypeStyle(type: string) {
   switch (type) {
@@ -27,6 +28,7 @@ function getEventTypeStyle(type: string) {
 
 export function UpcomingEvents() {
   const [events, setEvents] = React.useState<MoldEvent[]>([]);
+  const { t } = useApp();
   React.useEffect(() => {
     getUpcomingEvents().then(setEvents);
   }, []);
@@ -34,9 +36,9 @@ export function UpcomingEvents() {
   return (
     <Card className="col-span-1 lg:col-span-1">
       <CardHeader>
-        <CardTitle>Upcoming Events</CardTitle>
+        <CardTitle>{t('upcomingEvents')}</CardTitle>
         <CardDescription>
-          Upcoming maintenance and other important events.
+          {t('upcomingMaintenanceEvents')}
         </CardDescription>
       </CardHeader>
       <CardContent>

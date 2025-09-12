@@ -1,7 +1,7 @@
 
 'use client';
 
-import { getMold, getMolds, getComponentsForMold } from '@/lib/data';
+import { getMold, getComponentsForMold } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import {
   Card,
@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Layers, ChevronLeft, PlusCircle, Pencil } from 'lucide-react';
+import { ChevronLeft, Pencil } from 'lucide-react';
 import Link from 'next/link';
 import { EventTimeline } from './components/event-timeline';
 import { AssociatedComponents } from './components/associated-components';
@@ -23,6 +23,7 @@ import { MoldAttachments } from './components/mold-attachments';
 import { DeleteButton } from '@/components/shared/delete-button';
 import { useApp } from '@/context/app-context';
 import { useEffect, useState, useCallback } from 'react';
+import Header from '@/components/layout/header';
 
 export default function MoldDetailPage({
   params,
@@ -32,7 +33,7 @@ export default function MoldDetailPage({
   const [mold, setMold] = useState<Mold | null>(null);
   const [associatedComponents, setAssociatedComponents] = useState<CompType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { user } = useApp();
+  const { user, t } = useApp();
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -63,6 +64,8 @@ export default function MoldDetailPage({
 
   return (
     <RestrictedPage allowedCode={mold.codice}>
+      <Header />
+      <main className="flex-1">
       <div className="container mx-auto py-10">
         <div className="flex justify-between items-start mb-6">
           <div>
@@ -71,14 +74,14 @@ export default function MoldDetailPage({
               className="text-sm text-muted-foreground hover:underline flex items-center mb-2"
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
-              Back to Molds
+              {t('backToMolds')}
             </Link>
             <h1 className="text-3xl font-bold font-headline">{mold.codice}</h1>
             <p className="text-lg text-muted-foreground">{mold.descrizione}</p>
           </div>
           <div className="text-right space-y-2 flex items-center gap-2">
             <div>
-                <p className="text-sm text-muted-foreground">Current Status</p>
+                <p className="text-sm text-muted-foreground">{t('currentStatus')}</p>
                 <Badge
                   className={`text-base mt-1 ${
                     mold.stato === 'Operativo'
@@ -95,7 +98,7 @@ export default function MoldDetailPage({
             </div>
             <AdminButton href={`/molds/${mold.id}/edit`} variant="outline" size="sm">
                 <Pencil className="mr-2 h-4 w-4" />
-                Edit Mold
+                {t('editMold')}
             </AdminButton>
              <DeleteButton 
                 itemId={mold.id}
@@ -111,23 +114,23 @@ export default function MoldDetailPage({
              <EditCustomFields item={mold as Mold | CompType} itemType="mold" />
             <Card>
               <CardHeader>
-                <CardTitle>Details</CardTitle>
+                <CardTitle>{t('details')}</CardTitle>
               </CardHeader>
               <CardContent className="grid md:grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="font-semibold">Creation Date</p>
+                  <p className="font-semibold">{t('creationDate')}</p>
                   <p className="text-muted-foreground">{mold.data}</p>
                 </div>
                 <div>
-                  <p className="font-semibold">Position</p>
+                  <p className="font-semibold">{t('position')}</p>
                   <p className="text-muted-foreground">
-                    {mold.posizione.type === 'interna' ? 'Internal' : 'External'}:{' '}
+                    {mold.posizione.type === 'interna' ? t('internal') : t('external')}:{' '}
                     {mold.posizione.value}
                   </p>
                 </div>
                 {mold.padre && (
                   <div>
-                    <p className="font-semibold">Parent Mold</p>
+                    <p className="font-semibold">{t('parentMold')}</p>
                     <Link
                       href={`/molds/${mold.padre}`}
                       className="text-primary hover:underline"
@@ -138,7 +141,7 @@ export default function MoldDetailPage({
                 )}
                  {mold.macchinaAssociata && (
                   <div>
-                    <p className="font-semibold">Associated Machine</p>
+                    <p className="font-semibold">{t('associatedMachine')}</p>
                     <p className="text-muted-foreground">{mold.macchinaAssociata}</p>
                   </div>
                 )}
@@ -146,36 +149,36 @@ export default function MoldDetailPage({
             </Card>
              <Card>
               <CardHeader>
-                <CardTitle>Technical & Management Data</CardTitle>
+                <CardTitle>{t('technicalManagementData')}</CardTitle>
               </CardHeader>
                <CardContent className="grid md:grid-cols-2 gap-4 text-sm">
                  {mold.datiTecnici?.impronte && (
                   <div>
-                    <p className="font-semibold">Impressions</p>
+                    <p className="font-semibold">{t('impressions')}</p>
                     <p className="text-muted-foreground">{mold.datiTecnici.impronte}</p>
                   </div>
                 )}
                  {mold.datiTecnici?.materialeCostruzione && (
                   <div>
-                    <p className="font-semibold">Construction Material</p>
+                    <p className="font-semibold">{t('constructionMaterial')}</p>
                     <p className="text-muted-foreground">{mold.datiTecnici.materialeCostruzione}</p>
                   </div>
                 )}
                  {mold.datiTecnici?.dimensioniPeso && (
                   <div>
-                    <p className="font-semibold">Dimensions/Weight</p>
+                    <p className="font-semibold">{t('dimensionsWeight')}</p>
                     <p className="text-muted-foreground">{mold.datiTecnici.dimensioniPeso}</p>
                   </div>
                 )}
                 {user?.isAdmin && mold.datiGestionali?.costoAcquisto && (
                   <div>
-                    <p className="font-semibold">Purchase Cost</p>
+                    <p className="font-semibold">{t('purchaseCost')}</p>
                     <p className="text-muted-foreground">€{mold.datiGestionali.costoAcquisto.toLocaleString()}</p>
                   </div>
                 )}
                 {mold.datiGestionali?.vitaUtileStimata && (
                   <div>
-                    <p className="font-semibold">Expected Lifetime</p>
+                    <p className="font-semibold">{t('expectedLifetime')}</p>
                     <p className="text-muted-foreground">{mold.datiGestionali.vitaUtileStimata.toLocaleString()} cycles</p>
                   </div>
                 )}
@@ -189,6 +192,7 @@ export default function MoldDetailPage({
           </div>
         </div>
       </div>
+      </main>
     </RestrictedPage>
   );
 }

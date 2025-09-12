@@ -2,6 +2,7 @@
 'use client';
 
 import * as React from 'react';
+import Header from '@/components/layout/header';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/context/app-context';
 import { Button } from '@/components/ui/button';
@@ -18,7 +19,7 @@ import { LogIn, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
-  const { loginAs } = useApp();
+  const { loginAs, t } = useApp();
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
@@ -35,8 +36,8 @@ export default function LoginPage() {
       router.push('/dashboard');
     } else {
       toast({
-        title: 'Login Failed',
-        description: 'Invalid user code provided.',
+        title: t('loginFailed'),
+        description: t('invalidUserCode'),
         variant: 'destructive',
       });
       setCode('');
@@ -45,38 +46,41 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-10rem)] items-center justify-center bg-background">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <CardTitle>Welcome</CardTitle>
-          <CardDescription>Enter your user code to log in</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="user-code">User Code</Label>
-              <Input
-                id="user-code"
-                placeholder="e.g., guilhermevolp93"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={loading || !code}
-            >
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
-              {loading ? 'Logging in...' : 'Login'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+    <>
+      <Header />
+      <main className="flex-1">
+        <div className="flex min-h-[calc(100vh-10rem)] items-center justify-center bg-background">
+          <Card className="w-full max-w-sm">
+            <CardHeader className="text-center">
+              <CardTitle>{t('welcome')}</CardTitle>
+              <CardDescription>{t('enterUserCode')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="user-code">{t('userCode')}</Label>
+                  <Input
+                    id="user-code"
+                    placeholder="e.g., guilhermevolp93"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={loading || !code}
+                >
+                  {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
+                  {loading ? t('loggingIn') : t('login')}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    </>
   );
 }
-
-    

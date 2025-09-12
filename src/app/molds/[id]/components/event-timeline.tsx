@@ -40,7 +40,7 @@ export function EventTimeline({ moldId }: EventTimelineProps) {
   const [events, setEvents] = React.useState<MoldEvent[]>([]);
   const [selectedEvent, setSelectedEvent] = React.useState<MoldEvent | null>(null);
   const [isAddSheetOpen, setIsAddSheetOpen] = React.useState(false);
-  const { user } = useApp();
+  const { user, t } = useApp();
 
   const fetchEvents = React.useCallback(() => {
     getEventsForMold(moldId).then(setEvents);
@@ -57,7 +57,7 @@ export function EventTimeline({ moldId }: EventTimelineProps) {
   }
 
   const handleEventClick = (event: MoldEvent) => {
-    if (user && event.status !== 'Chiuso') {
+    if (event.status !== 'Chiuso') {
       setSelectedEvent(event);
     }
   }
@@ -66,13 +66,11 @@ export function EventTimeline({ moldId }: EventTimelineProps) {
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Event History</CardTitle>
-          {user && (
+          <CardTitle>{t('eventHistory')}</CardTitle>
             <Button variant="outline" size="sm" onClick={() => setIsAddSheetOpen(true)}>
               <PlusCircle className="mr-2 h-4 w-4" />
-              Add Event
+              {t('addEvent')}
             </Button>
-          )}
         </CardHeader>
         <CardContent>
           {events.length > 0 ? (
@@ -87,7 +85,7 @@ export function EventTimeline({ moldId }: EventTimelineProps) {
                   key={event.id}
                   className={cn(
                     "flex gap-4 p-2 rounded-md",
-                    !isClosed && user && "cursor-pointer hover:bg-muted"
+                    !isClosed && "cursor-pointer hover:bg-muted"
                   )}
                   onClick={() => handleEventClick(event)}
                 >
@@ -128,7 +126,7 @@ export function EventTimeline({ moldId }: EventTimelineProps) {
               )})}
             </div>
           ) : (
-            <p className="text-sm text-center text-muted-foreground py-8">No events recorded.</p>
+            <p className="text-sm text-center text-muted-foreground py-8">{t('noEventsRecorded')}</p>
           )}
         </CardContent>
       </Card>

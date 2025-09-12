@@ -41,7 +41,7 @@ const getFileIcon = (fileType: string) => {
 }
 
 export function MoldAttachments({ mold }: MoldAttachmentsProps) {
-  const { user } = useApp();
+  const { user, t } = useApp();
   const { toast } = useToast();
   const router = useRouter();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -108,14 +108,14 @@ export function MoldAttachments({ mold }: MoldAttachmentsProps) {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-            <CardTitle>Attachments</CardTitle>
+            <CardTitle>{t('attachments')}</CardTitle>
             <CardDescription>3D files, PDFs, and other technical documents.</CardDescription>
         </div>
         <div className="flex items-center gap-2">
             {hasAttachments && (
                  <Button variant="secondary" onClick={handleViewDrawing}>
                     <Eye className="mr-2 h-4 w-4" />
-                    View Drawing
+                    {t('viewDrawing')}
                 </Button>
             )}
             {user?.isAdmin && (
@@ -126,7 +126,7 @@ export function MoldAttachments({ mold }: MoldAttachmentsProps) {
                         ) : (
                             <UploadCloud className="mr-2 h-4 w-4" />
                         )}
-                        {isUploading ? 'Uploading...' : 'Upload File'}
+                        {isUploading ? t('uploading') : t('uploadFile')}
                     </Button>
                     <input
                         type="file"
@@ -157,32 +157,14 @@ export function MoldAttachments({ mold }: MoldAttachmentsProps) {
                   </div>
                 </div>
                 {user?.isAdmin && (
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                       <Button variant="ghost" size="icon">
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                       </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action will permanently delete the file <span className="font-semibold">{file.fileName}</span> from storage. This cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDelete(file)}>Delete</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <DeleteButton itemId={file.id} itemType="attachment" itemName={file.fileName} redirectPath={`/molds/${mold.id}`} />
                 )}
               </li>
             ))}
           </ul>
         ) : (
           <p className="text-sm text-center text-muted-foreground py-8">
-            No files have been attached to this mold.
+            {t('noFilesAttached').replace('{itemType}', 'mold')}
           </p>
         )}
       </CardContent>

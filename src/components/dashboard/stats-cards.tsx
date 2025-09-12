@@ -12,7 +12,7 @@ import * as React from 'react';
 import { useApp } from '@/context/app-context';
 
 export function StatsCards() {
-  const { user } = useApp();
+  const { user, t } = useApp();
   const [stats, setStats] = React.useState({
     totalMolds: 0,
     maintenanceMolds: 0,
@@ -27,38 +27,38 @@ export function StatsCards() {
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Molds</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('totalMolds')}</CardTitle>
           <Package className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats.totalMolds}</div>
-          <p className="text-xs text-muted-foreground">All molds in the system</p>
+          <p className="text-xs text-muted-foreground">{t('allMoldsInSystem')}</p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            Molds in Maintenance
+            {t('moldsInMaintenance')}
           </CardTitle>
           <Wrench className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats.maintenanceMolds}</div>
           <p className="text-xs text-muted-foreground">
-            Currently under maintenance or repair
+            {t('currentlyUnderMaintenance')}
           </p>
         </CardContent>
       </Card>
       {user?.isAdmin && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">External Molds</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('externalMolds')}</CardTitle>
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.externalMolds}</div>
             <p className="text-xs text-muted-foreground">
-              Molds located at external suppliers
+              {t('moldsAtExternalSuppliers')}
             </p>
           </CardContent>
         </Card>

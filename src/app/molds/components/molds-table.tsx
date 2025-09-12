@@ -14,11 +14,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Mold } from '@/lib/types';
 import {
-  ChevronDown,
   PlusCircle,
   Download,
   Upload,
-  Trash2,
   CornerDownRight,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -33,20 +31,7 @@ import { cn } from '@/lib/utils';
 import { useApp } from '@/context/app-context';
 import { ImportMoldsDialog } from './import-molds-dialog';
 import { AdminButton } from '@/components/layout/admin-button';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { useToast } from '@/hooks/use-toast';
-import { deleteMold } from '@/lib/data';
-import { useRouter } from 'next/navigation';
+import { DeleteButton } from '@/components/shared/delete-button';
 
 interface MoldsTableProps {
   data: Mold[];
@@ -58,9 +43,7 @@ export function MoldsTable({ data }: MoldsTableProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [statusFilter, setStatusFilter] = React.useState('all');
   const [isImporting, setIsImporting] = React.useState(false);
-  const { user } = useApp();
-  const { toast } = useToast();
-  const router = useRouter();
+  const { user, t } = useApp();
 
 
   const getStatusClass = (status: Mold['stato']) => {
@@ -144,31 +127,13 @@ export function MoldsTable({ data }: MoldsTableProps) {
     document.body.removeChild(a);
   }
 
-  const handleDelete = async (mold: Mold) => {
-    try {
-      await deleteMold(mold.id);
-      toast({
-        title: 'Mold Deleted',
-        description: `Mold "${mold.codice}" has been moved to the archive.`,
-      });
-      router.refresh();
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'An error occurred while deleting the mold.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-
   return (
     <>
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Input
-              placeholder="Search molds..."
+              placeholder={t('searchMolds')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-80"
@@ -178,14 +143,14 @@ export function MoldsTable({ data }: MoldsTableProps) {
               onValueChange={setStatusFilter}
             >
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by status" />
+                <SelectValue placeholder={t('filterByStatus')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="Operativo">Operational</SelectItem>
-                <SelectItem value="In Manutenzione">Maintenance</SelectItem>
-                <SelectItem value="Lavorazione">Processing</SelectItem>
-                <SelectItem value="Fermo">Stopped</SelectItem>
+                <SelectItem value="all">{t('allStatuses')}</SelectItem>
+                <SelectItem value="Operativo">{t('operational')}</SelectItem>
+                <SelectItem value="In Manutenzione">{t('maintenance')}</SelectItem>
+                <SelectItem value="Lavorazione">{t('processing')}</SelectItem>
+                <SelectItem value="Fermo">{t('stopped')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -194,17 +159,17 @@ export function MoldsTable({ data }: MoldsTableProps) {
               <>
                 <Button variant="outline" onClick={() => setIsImporting(true)}>
                   <Upload className="mr-2 h-4 w-4" />
-                  Import CSV
+                  {t('importCSV')}
                 </Button>
                 <Button variant="outline" onClick={downloadCSV}>
                   <Download className="mr-2 h-4 w-4" />
-                  Download CSV
+                  {t('downloadCSV')}
                 </Button>
               </>
             )}
             <AdminButton href="/molds/new">
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Add Mold
+                {t('addMold')}
             </AdminButton>
           </div>
         </div>
@@ -212,14 +177,14 @@ export function MoldsTable({ data }: MoldsTableProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[300px]">Mold Code</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Supplier</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Available at</TableHead>
+                <TableHead className="w-[300px]">{t('moldCode')}</TableHead>
+                <TableHead>{t('description')}</TableHead>
+                <TableHead>{t('location')}</TableHead>
+                <TableHead>{t('supplier')}</TableHead>
+                <TableHead>{t('status')}</TableHead>
+                <TableHead>{t('availableAt')}</TableHead>
                 <TableHead>
-                  <span className="sr-only">Actions</span>
+                  <span className="sr-only">{t('actions')}</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -256,28 +221,15 @@ export function MoldsTable({ data }: MoldsTableProps) {
                   <TableCell>{mold.availableAt || 'N/A'}</TableCell>
                   <TableCell className="text-right space-x-2">
                       <Button asChild variant="outline" size="sm">
-                          <Link href={`/molds/${mold.id}`}>View Details</Link>
+                          <Link href={`/molds/${mold.id}`}>{t('viewDetails')}</Link>
                       </Button>
                       {user?.isAdmin && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-9 w-9">
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This will archive the mold. It won't be permanently deleted, but it will be hidden from the main list.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(mold)}>Archive</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        <DeleteButton 
+                            itemId={mold.id}
+                            itemType="mold"
+                            itemName={mold.codice}
+                            redirectPath="/molds"
+                        />
                       )}
                   </TableCell>
                 </TableRow>
@@ -293,5 +245,3 @@ export function MoldsTable({ data }: MoldsTableProps) {
     </>
   );
 }
-
-    

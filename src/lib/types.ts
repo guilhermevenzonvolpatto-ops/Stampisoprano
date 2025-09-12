@@ -5,6 +5,7 @@ export interface User {
   name: string;
   isAdmin: boolean;
   allowedCodes: string[];
+  language?: 'en' | 'it';
 }
 
 export interface Attachment {

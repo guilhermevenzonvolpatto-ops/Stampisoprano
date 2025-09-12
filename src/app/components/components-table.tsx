@@ -13,24 +13,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Component } from '@/lib/types';
-import { PlusCircle, Trash2 } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/context/app-context';
 import { AdminButton } from '@/components/layout/admin-button';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { useToast } from '@/hooks/use-toast';
-import { deleteComponent } from '@/lib/data';
-import { useRouter } from 'next/navigation';
+import { DeleteButton } from '@/components/shared/delete-button';
 
 interface ComponentsTableProps {
   data: Component[];
@@ -38,9 +25,7 @@ interface ComponentsTableProps {
 
 export function ComponentsTable({ data }: ComponentsTableProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
-  const { user } = useApp();
-  const { toast } = useToast();
-  const router = useRouter();
+  const { user, t } = useApp();
 
   const getStatusClass = (status: Component['stato']) => {
     switch (status) {
@@ -71,29 +56,13 @@ export function ComponentsTable({ data }: ComponentsTableProps) {
     );
   }, [data, searchTerm, user]);
 
-  const handleDelete = async (component: Component) => {
-    try {
-      await deleteComponent(component.id);
-      toast({
-        title: 'Component Deleted',
-        description: `Component "${component.codice}" has been moved to the archive.`,
-      });
-      router.refresh();
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'An error occurred while deleting the component.',
-        variant: 'destructive',
-      });
-    }
-  };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Input
-            placeholder="Search components..."
+            placeholder={t('searchComponents')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-80"
@@ -101,20 +70,20 @@ export function ComponentsTable({ data }: ComponentsTableProps) {
         </div>
         <AdminButton href="/components/new">
             <PlusCircle className="mr-2 h-4 w-4" />
-            Add Component
+            {t('addComponent')}
         </AdminButton>
       </div>
       <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Code</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Material</TableHead>
-              <TableHead>Total Cycles</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>{t('code')}</TableHead>
+              <TableHead>{t('description')}</TableHead>
+              <TableHead>{t('material')}</TableHead>
+              <TableHead>{t('totalCycles')}</TableHead>
+              <TableHead>{t('status')}</TableHead>
               <TableHead>
-                <span className="sr-only">Actions</span>
+                <span className="sr-only">{t('actions')}</span>
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -132,28 +101,15 @@ export function ComponentsTable({ data }: ComponentsTableProps) {
                 </TableCell>
                 <TableCell className="text-right space-x-2">
                   <Button variant="outline" size="sm" asChild>
-                    <Link href={`/components/${c.id}`}>View Details</Link>
+                    <Link href={`/components/${c.id}`}>{t('viewDetails')}</Link>
                   </Button>
                   {user?.isAdmin && (
-                     <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-9 w-9">
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This will archive the component. It won't be permanently deleted, but it will be hidden from the main list.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDelete(c)}>Archive</AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                    <DeleteButton 
+                        itemId={c.id}
+                        itemType="component"
+                        itemName={c.codice}
+                        redirectPath="/components"
+                    />
                   )}
                 </TableCell>
               </TableRow>
