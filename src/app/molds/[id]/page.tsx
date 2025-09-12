@@ -22,7 +22,7 @@ import { AdminButton } from '@/components/layout/admin-button';
 import { MoldAttachments } from './components/mold-attachments';
 import { DeleteButton } from '@/components/shared/delete-button';
 import { useApp } from '@/context/app-context';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 export default function MoldDetailPage({
   params,
@@ -31,25 +31,29 @@ export default function MoldDetailPage({
 }) {
   const [mold, setMold] = useState<Mold | null>(null);
   const [associatedComponents, setAssociatedComponents] = useState<CompType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { user } = useApp();
 
-  useEffect(() => {
-    async function fetchData() {
-        const moldData = await getMold(params.id);
-        if (!moldData) {
-            notFound();
-            return;
-        }
-        setMold(moldData);
-
-        const componentsData = await getComponentsForMold(moldData.id);
-        setAssociatedComponents(componentsData);
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    const moldData = await getMold(params.id);
+    if (!moldData) {
+        notFound();
+        return;
     }
-    fetchData();
+    setMold(moldData);
+
+    const componentsData = await getComponentsForMold(moldData.id);
+    setAssociatedComponents(componentsData);
+    setIsLoading(false);
   }, [params.id]);
 
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-  if (!mold) {
+
+  if (isLoading || !mold) {
       return (
           <div className="container mx-auto py-10">
               <p>Loading...</p>
@@ -178,7 +182,7 @@ export default function MoldDetailPage({
                </CardContent>
             </Card>
             <MoldAttachments mold={mold} />
-            <AssociatedComponents components={associatedComponents} />
+            <AssociatedComponents components={associatedComponents} moldId={mold.id} onUpdate={fetchData} />
           </div>
           <div className="lg:col-span-1">
             <EventTimeline moldId={mold.id} />

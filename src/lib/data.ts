@@ -18,6 +18,7 @@ import {
   runTransaction,
   arrayUnion,
   arrayRemove,
+  writeBatch,
 } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, app } from './firebase';
@@ -572,6 +573,28 @@ export async function deleteAttachment(
     }
 }
 
+export async function associateComponentsToMold(moldId: string, componentIds: string[]): Promise<{ success: boolean; error?: string }> {
+  if (!componentIds || componentIds.length === 0) {
+    return { success: false, error: "No component IDs provided." };
+  }
+  
+  const batch = writeBatch(db);
+
+  componentIds.forEach(componentId => {
+    const componentRef = doc(db, 'components', componentId);
+    batch.update(componentRef, {
+      associatedMolds: arrayUnion(moldId)
+    });
+  });
+
+  try {
+    await batch.commit();
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error associating components to mold:", error);
+    return { success: false, error: "An error occurred while saving the association." };
+  }
+}
     
 
     

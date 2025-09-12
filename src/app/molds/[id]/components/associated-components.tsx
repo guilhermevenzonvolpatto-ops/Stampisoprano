@@ -1,7 +1,7 @@
 
 'use client';
 import * as React from 'react';
-import type { Component } from '@/lib/types';
+import type { Component, Mold } from '@/lib/types';
 import Link from 'next/link';
 import {
   Card,
@@ -22,13 +22,25 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { useApp } from '@/context/app-context';
 import { AdminButton } from '@/components/layout/admin-button';
+import { AddOrSelectComponentDialog } from './add-or-select-component-dialog';
+import { getComponents } from '@/lib/data';
 
 interface AssociatedComponentsProps {
   components: Component[];
+  moldId: string;
+  onUpdate: () => void;
 }
 
-export function AssociatedComponents({ components }: AssociatedComponentsProps) {
-    const { user } = useApp();
+export function AssociatedComponents({ components, moldId, onUpdate }: AssociatedComponentsProps) {
+  const { user } = useApp();
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [allComponents, setAllComponents] = React.useState<Component[]>([]);
+
+  React.useEffect(() => {
+    if (user?.isAdmin) {
+      getComponents().then(setAllComponents);
+    }
+  }, [user]);
 
   const getStatusClass = (status: string) => {
     switch (status) {
@@ -39,51 +51,67 @@ export function AssociatedComponents({ components }: AssociatedComponentsProps) 
     }
   };
 
+  if (!user) return null;
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Associated Components</CardTitle>
-        <AdminButton href="/components/new" variant="outline" size="sm">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Component
-        </AdminButton>
-      </CardHeader>
-      <CardContent>
-        {components.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Code</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Material</TableHead>
-                <TableHead>Status</TableHead>
-                 <TableHead><span className="sr-only">Actions</span></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {components.map((c) => (
-                <TableRow key={c.id}>
-                  <TableCell className="font-medium">{c.codice}</TableCell>
-                  <TableCell>{c.descrizione}</TableCell>
-                  <TableCell>{c.materiale}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className={getStatusClass(c.stato)}>
-                      {c.stato}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button asChild variant="outline" size="sm">
-                        <Link href={`/components/${c.id}`}>View</Link>
-                    </Button>
-                  </TableCell>
+    <>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Associated Components</CardTitle>
+          {user.isAdmin && (
+             <Button variant="outline" size="sm" onClick={() => setIsDialogOpen(true)}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Component
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent>
+          {components.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Code</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Material</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead><span className="sr-only">Actions</span></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        ) : (
-             <p className="text-sm text-center text-muted-foreground py-8">No components associated with this mold.</p>
-        )}
-      </CardContent>
-    </Card>
+              </TableHeader>
+              <TableBody>
+                {components.map((c) => (
+                  <TableRow key={c.id}>
+                    <TableCell className="font-medium">{c.codice}</TableCell>
+                    <TableCell>{c.descrizione}</TableCell>
+                    <TableCell>{c.materiale}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className={getStatusClass(c.stato)}>
+                        {c.stato}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button asChild variant="outline" size="sm">
+                          <Link href={`/components/${c.id}`}>View</Link>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+              <p className="text-sm text-center text-muted-foreground py-8">No components associated with this mold.</p>
+          )}
+        </CardContent>
+      </Card>
+      {user.isAdmin && (
+        <AddOrSelectComponentDialog
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          moldId={moldId}
+          allComponents={allComponents}
+          associatedComponentIds={components.map(c => c.id)}
+          onAssociationComplete={onUpdate}
+        />
+      )}
+    </>
   );
 }
