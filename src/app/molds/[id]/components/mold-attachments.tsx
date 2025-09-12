@@ -157,7 +157,25 @@ export function MoldAttachments({ mold }: MoldAttachmentsProps) {
                   </div>
                 </div>
                 {user?.isAdmin && (
-                  <DeleteButton itemId={file.id} itemType="attachment" itemName={file.fileName} redirectPath={`/molds/${mold.id}`} />
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                       <Button variant="ghost" size="icon">
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                       </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action will permanently delete the file <span className="font-semibold">{file.fileName}</span> from storage. This cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDelete(file)}>Delete</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 )}
               </li>
             ))}
