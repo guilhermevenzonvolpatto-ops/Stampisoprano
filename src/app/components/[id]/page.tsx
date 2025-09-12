@@ -1,5 +1,5 @@
 
-import { getComponent, getMold, getProductionLogsForComponent, getStampingHistoryForComponent, deleteComponent } from '@/lib/data';
+import { getComponent, getMold, getProductionLogsForComponent, getStampingHistoryForComponent } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import {
   Card,
@@ -9,28 +9,16 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, Pencil, FilePenLine, Trash2 } from 'lucide-react';
+import { ChevronLeft, FilePenLine } from 'lucide-react';
 import Link from 'next/link';
 import type { Mold, Component, Machine } from '@/lib/types';
 import { RestrictedPage } from '@/components/layout/restricted-page';
 import { EditCustomFields } from '@/components/shared/edit-custom-fields';
 import { ComponentAttachments } from '../attachments';
 import { ProductionHistory } from '../production-history';
-import { AdminButton } from '@/components/layout/admin-button';
 import { StampingHistory } from './stamping-history';
 import { Button } from '@/components/ui/button';
 import { ComponentChecklist } from './component-checklist';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { DeleteButton } from '@/components/shared/delete-button';
 
 export default async function ComponentDetailPage({
