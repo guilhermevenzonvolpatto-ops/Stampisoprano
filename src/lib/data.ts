@@ -1,5 +1,4 @@
 
-
 import {
   collection,
   doc,
@@ -258,8 +257,8 @@ export const getStatusDistribution = async () => {
 
 export const getSupplierDistribution = async () => {
     try {
-        const snapshot = await getDocs(query(moldsCol, where('posizione.type', '==', 'esterna'), where('isDeleted', '==', false)));
-        const externalMolds = snapshot.docs.map(docToMold);
+        const snapshot = await getDocs(query(moldsCol, where('posizione.type', '==', 'esterna')));
+        const externalMolds = snapshot.docs.map(docToMold).filter(m => !m.isDeleted);
         const dist = externalMolds.reduce((acc, mold) => {
             const supplier = mold.posizione.value || 'Unknown';
             acc[supplier] = (acc[supplier] || 0) + 1;
