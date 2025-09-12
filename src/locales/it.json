@@ -66,6 +66,7 @@
   "uploading": "Caricamento...",
   "noFilesAttached": "Nessun file è stato allegato a questo {itemType}.",
   "associatedComponents": "Componenti Associati",
+  "noComponentsAssociated": "Nessun componente associato a questo stampo.",
   "addComponent": "Aggiungi Componente",
   "eventHistory": "Storico Eventi",
   "addEvent": "Aggiungi Evento",

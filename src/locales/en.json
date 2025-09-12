@@ -66,6 +66,7 @@
   "uploading": "Uploading...",
   "noFilesAttached": "No files have been attached to this {itemType}.",
   "associatedComponents": "Associated Components",
+  "noComponentsAssociated": "No components associated with this mold.",
   "addComponent": "Add Component",
   "eventHistory": "Event History",
   "addEvent": "Add Event",
