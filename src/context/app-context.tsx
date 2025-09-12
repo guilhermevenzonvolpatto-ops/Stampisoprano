@@ -101,6 +101,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const handleSetLanguage = (lang: Locale) => {
     setLanguage(lang);
     localStorage.setItem('language', lang);
+    if (document.documentElement) {
+      document.documentElement.lang = lang;
+    }
   }
 
   const t = (key: keyof Translations) => {
@@ -123,9 +126,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AppContext.Provider value={value}>
-        <html lang={language} suppressHydrationWarning>
-            {children}
-        </html>
+        {children}
     </AppContext.Provider>
   );
 }

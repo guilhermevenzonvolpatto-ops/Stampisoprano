@@ -21,6 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    <html lang="en" suppressHydrationWarning>
       <body className={`${fontBody.variable} font-sans antialiased`}>
         <AppProvider>
           <div className="relative flex min-h-screen flex-col bg-background">
@@ -29,5 +30,6 @@ export default function RootLayout({
           <Toaster />
         </AppProvider>
       </body>
+    </html>
   );
 }
