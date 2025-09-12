@@ -1,4 +1,5 @@
 
+
 import {
   collection,
   doc,
@@ -130,7 +131,7 @@ export const createComponent = async (data: Omit<Component, 'id' | 'stato' | 'ci
 };
 
 export const getMolds = async (): Promise<Mold[]> => {
-    const q = query(moldsCol, where('isDeleted', '==', false));
+    const q = query(moldsCol, where('isDeleted', '==', false), orderBy('codice'));
     const snapshot = await getDocs(q);
     const moldList = snapshot.docs.map(docToMold);
     const moldMap = new Map(moldList.map(m => [m.id, {...m, children: [] as Mold[]}]));
@@ -138,7 +139,12 @@ export const getMolds = async (): Promise<Mold[]> => {
 
     moldMap.forEach(mold => {
         if (mold.padre && moldMap.has(mold.padre)) {
-            moldMap.get(mold.padre)?.children?.push(mold);
+            const parent = moldMap.get(mold.padre);
+            // This check is to prevent adding children to a parent that is itself a child of another mold
+            // which would result in duplicate rendering in a flat list.
+            if(parent) {
+                parent.children.push(mold);
+            }
         } else {
             topLevelMolds.push(mold);
         }
@@ -565,5 +571,7 @@ export async function deleteAttachment(
         return { success: false, error: error.message };
     }
 }
+
+    
 
     

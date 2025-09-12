@@ -10,21 +10,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Mold } from '@/lib/types';
 import {
-  ChevronRight,
-  GripVertical,
+  ChevronDown,
   PlusCircle,
   Download,
   Upload,
   Trash2,
+  CornerDownRight,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
@@ -35,12 +30,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { useApp } from '@/context/app-context';
 import { ImportMoldsDialog } from './import-molds-dialog';
 import { AdminButton } from '@/components/layout/admin-button';
@@ -62,6 +51,8 @@ import { useRouter } from 'next/navigation';
 interface MoldsTableProps {
   data: Mold[];
 }
+
+type MoldRow = Mold & { isChild?: boolean };
 
 export function MoldsTable({ data }: MoldsTableProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -87,27 +78,38 @@ export function MoldsTable({ data }: MoldsTableProps) {
     }
   };
 
-  const filteredData = React.useMemo(() => {
+  const flattenedData = React.useMemo(() => {
     let molds = data;
     
     if (user && !user.isAdmin) {
-      molds = molds.filter(m => user.allowedCodes.includes(m.codice));
+      molds = molds.filter(m => user.allowedCodes.includes(m.codice) || (m.children && m.children.some(c => user.allowedCodes.includes(c.codice))));
     }
     
     if (searchTerm) {
       molds = molds.filter(
         (m) =>
           m.codice.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          m.descrizione.toLowerCase().includes(searchTerm.toLowerCase())
+          m.descrizione.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (m.children && m.children.some(c => c.codice.toLowerCase().includes(searchTerm.toLowerCase()) || c.descrizione.toLowerCase().includes(searchTerm.toLowerCase())))
       );
     }
-    if (statusFilter !== 'all') {
-      molds = molds.filter((m) => m.stato === statusFilter);
-    }
-    return molds;
-  }, [data, searchTerm, statusFilter, user]);
 
-  const topLevelMolds = filteredData.filter((m) => !m.padre || !filteredData.find(p => p.id === m.padre));
+    if (statusFilter !== 'all') {
+      molds = molds.filter((m) => m.stato === statusFilter || (m.children && m.children.some(c => c.stato === statusFilter)));
+    }
+    
+    const flatList: MoldRow[] = [];
+    molds.forEach(mold => {
+        flatList.push(mold);
+        if (mold.children) {
+            mold.children.forEach(child => {
+                flatList.push({ ...child, isChild: true });
+            });
+        }
+    });
+
+    return flatList;
+  }, [data, searchTerm, statusFilter, user]);
 
   const downloadCSV = () => {
     const headers = ['codice', 'descrizione', 'data', 'padre', 'stato', 'posizioneType', 'posizioneValue', 'macchinaAssociata'];
@@ -160,100 +162,6 @@ export function MoldsTable({ data }: MoldsTableProps) {
   };
 
 
-  const renderRow = (mold: Mold, isChild = false) => (
-    <TableRow key={mold.id} className={cn('group', isChild && 'bg-muted/50')}>
-        <TableCell
-          className={cn('font-medium', isChild && 'pl-10')}
-        >
-          <div className="flex items-center gap-1">
-            {mold.children && mold.children.length > 0 ? (
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 -ml-2">
-                  <ChevronRight className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-90" />
-                </Button>
-              </CollapsibleTrigger>
-            ) : (
-              <div className="w-8" />
-            )}
-            <Link
-              href={`/molds/${mold.id}`}
-              className="hover:underline"
-            >
-              {mold.codice}
-            </Link>
-          </div>
-        </TableCell>
-        <TableCell>{mold.descrizione}</TableCell>
-        <TableCell>
-          {mold.posizione.type === 'interna'
-            ? mold.posizione.value
-            : 'N/A'}
-        </TableCell>
-        <TableCell>
-          {mold.posizione.type === 'esterna'
-            ? mold.posizione.value
-            : 'N/A'}
-        </TableCell>
-        <TableCell>
-          <Badge
-            variant='secondary'
-            className={getStatusClass(mold.stato)}
-          >
-            {mold.stato}
-          </Badge>
-        </TableCell>
-        <TableCell>{mold.availableAt || 'N/A'}</TableCell>
-        <TableCell className="text-right space-x-2">
-            <Button asChild variant="outline" size="sm">
-                <Link href={`/molds/${mold.id}`}>View Details</Link>
-            </Button>
-            {user?.isAdmin && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-9 w-9">
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will archive the mold. It won't be permanently deleted, but it will be hidden from the main list.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => handleDelete(mold)}>Archive</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-        </TableCell>
-        {mold.children && mold.children.length > 0 && (
-          <CollapsibleContent asChild>
-            <TableRow>
-              <TableCell colSpan={7} className="p-0">
-                <Table>
-                    <TableBody>
-                        {mold.children.map((child) => renderRow(child, true))}
-                    </TableBody>
-                </Table>
-              </TableCell>
-            </TableRow>
-          </CollapsibleContent>
-        )}
-    </TableRow>
-  );
-  
-  const CollapsibleRow = (props: {mold: Mold, isChild?: boolean}) => (
-      <Collapsible asChild>
-          <>
-            {renderRow(props.mold, props.isChild)}
-          </>
-      </Collapsible>
-  )
-
-
   return (
     <>
       <div className="space-y-4">
@@ -304,7 +212,7 @@ export function MoldsTable({ data }: MoldsTableProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[250px]">Mold Code</TableHead>
+                <TableHead className="w-[300px]">Mold Code</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Location</TableHead>
                 <TableHead>Supplier</TableHead>
@@ -316,7 +224,64 @@ export function MoldsTable({ data }: MoldsTableProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {topLevelMolds.map((mold) => <CollapsibleRow key={mold.id} mold={mold} />)}
+              {flattenedData.map((mold) => (
+                <TableRow key={mold.id} className={cn(mold.isChild && 'bg-muted/50')}>
+                  <TableCell className="font-medium">
+                    <div className={cn("flex items-center gap-2", mold.isChild && "pl-6")}>
+                       {mold.isChild && <CornerDownRight className="h-4 w-4 text-muted-foreground" />}
+                      <Link href={`/molds/${mold.id}`} className="hover:underline">
+                        {mold.codice}
+                      </Link>
+                    </div>
+                  </TableCell>
+                  <TableCell>{mold.descrizione}</TableCell>
+                  <TableCell>
+                    {mold.posizione.type === 'interna'
+                      ? mold.posizione.value
+                      : 'N/A'}
+                  </TableCell>
+                  <TableCell>
+                    {mold.posizione.type === 'esterna'
+                      ? mold.posizione.value
+                      : 'N/A'}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant='secondary'
+                      className={getStatusClass(mold.stato)}
+                    >
+                      {mold.stato}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{mold.availableAt || 'N/A'}</TableCell>
+                  <TableCell className="text-right space-x-2">
+                      <Button asChild variant="outline" size="sm">
+                          <Link href={`/molds/${mold.id}`}>View Details</Link>
+                      </Button>
+                      {user?.isAdmin && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-9 w-9">
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will archive the mold. It won't be permanently deleted, but it will be hidden from the main list.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDelete(mold)}>Archive</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </div>
@@ -328,3 +293,5 @@ export function MoldsTable({ data }: MoldsTableProps) {
     </>
   );
 }
+
+    
