@@ -87,7 +87,7 @@ export function AddComponentForm({ allMolds }: AddComponentFormProps) {
         clampForce: values.clampForce,
       }
 
-      const newComponentData: Omit<Component, 'id' | 'stato' | 'cicliTotali'> = {
+      const newComponentData: Omit<Component, 'id' | 'stato' | 'cicliTotali' | 'isDeleted'> = {
         codice: values.codice,
         descrizione: values.descrizione,
         materiale: values.materiale,

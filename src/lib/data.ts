@@ -113,7 +113,7 @@ export const createMold = async (data: Omit<Mold, 'id' | 'data' | 'stato' | 'isD
     return { id: docRef.id, ...newMold } as Mold;
 };
 
-export const createComponent = async (data: Omit<Component, 'id' | 'stato' | 'cicliTotali'>): Promise<Component | { error: string }> => {
+export const createComponent = async (data: Omit<Component, 'id' | 'stato' | 'cicliTotali' | 'isDeleted'>): Promise<Component | { error: string }> => {
     const docRef = doc(componentsCol, data.codice);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
@@ -123,6 +123,7 @@ export const createComponent = async (data: Omit<Component, 'id' | 'stato' | 'ci
         ...data,
         stato: 'Attivo' as Component['stato'],
         cicliTotali: 0,
+        isDeleted: false,
     };
     await setDoc(docRef, newComponent);
     return { id: docRef.id, ...newComponent } as Component;
@@ -149,7 +150,8 @@ export const getMolds = async (): Promise<Mold[]> => {
 export const getMold = async (id: string): Promise<Mold | null> => {
     const docRef = doc(db, 'molds', id);
     const docSnap = await getDoc(docRef);
-    return docSnap.exists() ? docToMold(docSnap) : null;
+    if (!docSnap.exists() || docSnap.data().isDeleted) return null;
+    return docToMold(docSnap);
 }
 
 export const updateMold = async (id: string, updates: Partial<Mold>): Promise<Mold | null> => {
@@ -158,15 +160,27 @@ export const updateMold = async (id: string, updates: Partial<Mold>): Promise<Mo
     return getMold(id);
 };
 
+export const deleteMold = async (id: string): Promise<void> => {
+    const docRef = doc(db, 'molds', id);
+    await updateDoc(docRef, { isDeleted: true });
+}
+
 export const getComponents = async (): Promise<Component[]> => {
-    const snapshot = await getDocs(componentsCol);
+    const q = query(componentsCol, where('isDeleted', '==', false));
+    const snapshot = await getDocs(q);
     return snapshot.docs.map(docToComponent);
 }
 
 export const getComponent = async (id: string): Promise<Component | null> => {
     const docRef = doc(db, 'components', id);
     const docSnap = await getDoc(docRef);
-    return docSnap.exists() ? docToComponent(docSnap) : null;
+    if (!docSnap.exists() || docSnap.data().isDeleted) return null;
+    return docToComponent(docSnap);
+}
+
+export const deleteComponent = async (id: string): Promise<void> => {
+    const docRef = doc(db, 'components', id);
+    await updateDoc(docRef, { isDeleted: true });
 }
 
 export const getMachines = async (): Promise<Machine[]> => {
@@ -257,7 +271,8 @@ export const getStatusDistribution = async () => {
 
 export const getSupplierDistribution = async () => {
     try {
-        const snapshot = await getDocs(query(moldsCol, where('posizione.type', '==', 'esterna')));
+        const q = query(moldsCol, where('posizione.type', '==', 'esterna'));
+        const snapshot = await getDocs(q);
         const externalMolds = snapshot.docs.map(docToMold).filter(m => !m.isDeleted);
         const dist = externalMolds.reduce((acc, mold) => {
             const supplier = mold.posizione.value || 'Unknown';
@@ -325,7 +340,7 @@ export const getEventsForMold = async (sourceId: string): Promise<MoldEvent[]> =
 
 export const getComponentsForMold = async (moldId: string): Promise<Component[]> => {
     try {
-        const q = query(componentsCol, where('associatedMolds', 'array-contains', moldId));
+        const q = query(componentsCol, where('associatedMolds', 'array-contains', moldId), where('isDeleted', '==', false));
         const snapshot = await getDocs(q);
         return snapshot.docs.map(docToComponent);
     } catch(e) {

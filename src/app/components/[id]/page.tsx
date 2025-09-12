@@ -1,5 +1,5 @@
 
-import { getComponent, getMold, getProductionLogsForComponent, getStampingHistoryForComponent } from '@/lib/data';
+import { getComponent, getMold, getProductionLogsForComponent, getStampingHistoryForComponent, deleteComponent } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import {
   Card,
@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, Pencil, FilePenLine } from 'lucide-react';
+import { ChevronLeft, Pencil, FilePenLine, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import type { Mold, Component, Machine } from '@/lib/types';
 import { RestrictedPage } from '@/components/layout/restricted-page';
@@ -19,7 +19,19 @@ import { ProductionHistory } from '../production-history';
 import { AdminButton } from '@/components/layout/admin-button';
 import { StampingHistory } from './stamping-history';
 import { Button } from '@/components/ui/button';
-import { useApp } from '@/context/app-context';
+import { ComponentChecklist } from './component-checklist';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { DeleteButton } from '@/components/shared/delete-button';
 
 export default async function ComponentDetailPage({
   params,
@@ -80,7 +92,7 @@ export default async function ComponentDetailPage({
             <h1 className="text-3xl font-bold font-headline">{component.codice}</h1>
             <p className="text-lg text-muted-foreground">{component.descrizione}</p>
           </div>
-          <div className="text-right space-y-2">
+          <div className="text-right space-y-2 flex items-center gap-2">
              <div>
                 <p className="text-sm text-muted-foreground">Current Status</p>
                 <Badge
@@ -95,6 +107,12 @@ export default async function ComponentDetailPage({
                     Edit Stamping Data
                   </Link>
               </Button>
+               <DeleteButton 
+                itemId={component.id}
+                itemType="component"
+                itemName={component.codice}
+                redirectPath="/components"
+              />
           </div>
         </div>
 
@@ -144,6 +162,8 @@ export default async function ComponentDetailPage({
             )}
 
             <ComponentAttachments component={component} />
+
+            <ComponentChecklist component={component} />
 
             <Card className="lg:col-span-2">
               <CardHeader>

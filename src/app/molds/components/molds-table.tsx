@@ -24,6 +24,7 @@ import {
   PlusCircle,
   Download,
   Upload,
+  Trash2,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
@@ -43,6 +44,20 @@ import {
 import { useApp } from '@/context/app-context';
 import { ImportMoldsDialog } from './import-molds-dialog';
 import { AdminButton } from '@/components/layout/admin-button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { useToast } from '@/hooks/use-toast';
+import { deleteMold } from '@/lib/data';
+import { useRouter } from 'next/navigation';
 
 interface MoldsTableProps {
   data: Mold[];
@@ -53,6 +68,9 @@ export function MoldsTable({ data }: MoldsTableProps) {
   const [statusFilter, setStatusFilter] = React.useState('all');
   const [isImporting, setIsImporting] = React.useState(false);
   const { user } = useApp();
+  const { toast } = useToast();
+  const router = useRouter();
+
 
   const getStatusClass = (status: Mold['stato']) => {
     switch (status) {
@@ -124,9 +142,26 @@ export function MoldsTable({ data }: MoldsTableProps) {
     document.body.removeChild(a);
   }
 
+  const handleDelete = async (mold: Mold) => {
+    try {
+      await deleteMold(mold.id);
+      toast({
+        title: 'Mold Deleted',
+        description: `Mold "${mold.codice}" has been moved to the archive.`,
+      });
+      router.refresh();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'An error occurred while deleting the mold.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+
   const renderRow = (mold: Mold, isChild = false) => (
-    <Collapsible asChild key={mold.id}>
-      <TableRow className={cn(isChild && 'bg-muted/50')}>
+    <TableRow key={mold.id} className={cn('group', isChild && 'bg-muted/50')}>
         <TableCell
           className={cn('font-medium', isChild && 'pl-10')}
         >
@@ -134,7 +169,7 @@ export function MoldsTable({ data }: MoldsTableProps) {
             {mold.children && mold.children.length > 0 ? (
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8 -ml-2">
-                  <ChevronRight className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:rotate-90" />
+                  <ChevronRight className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-90" />
                 </Button>
               </CollapsibleTrigger>
             ) : (
@@ -168,19 +203,56 @@ export function MoldsTable({ data }: MoldsTableProps) {
           </Badge>
         </TableCell>
         <TableCell>{mold.data}</TableCell>
-        <TableCell className="text-right">
+        <TableCell className="text-right space-x-2">
             <Button asChild variant="outline" size="sm">
                 <Link href={`/molds/${mold.id}`}>View Details</Link>
             </Button>
+            {user?.isAdmin && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-9 w-9">
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will archive the mold. It won't be permanently deleted, but it will be hidden from the main list.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => handleDelete(mold)}>Archive</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
         </TableCell>
         {mold.children && mold.children.length > 0 && (
           <CollapsibleContent asChild>
-              {mold.children.map((child) => renderRow(child, true))}
+            <TableRow>
+              <TableCell colSpan={7} className="p-0">
+                <Table>
+                    <TableBody>
+                        {mold.children.map((child) => renderRow(child, true))}
+                    </TableBody>
+                </Table>
+              </TableCell>
+            </TableRow>
           </CollapsibleContent>
         )}
-      </TableRow>
-    </Collapsible>
+    </TableRow>
   );
+  
+  const CollapsibleRow = (props: {mold: Mold, isChild?: boolean}) => (
+      <Collapsible asChild>
+          <>
+            {renderRow(props.mold, props.isChild)}
+          </>
+      </Collapsible>
+  )
+
 
   return (
     <>
@@ -243,7 +315,9 @@ export function MoldsTable({ data }: MoldsTableProps) {
                 </TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>{topLevelMolds.map((mold) => renderRow(mold))}</TableBody>
+            <TableBody>
+              {topLevelMolds.map((mold) => <CollapsibleRow key={mold.id} mold={mold} />)}
+            </TableBody>
           </Table>
         </div>
       </div>

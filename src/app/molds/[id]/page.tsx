@@ -18,6 +18,7 @@ import { EditCustomFields } from '@/components/shared/edit-custom-fields';
 import type { Mold, Component as CompType } from '@/lib/types';
 import { AdminButton } from '@/components/layout/admin-button';
 import { MoldAttachments } from './components/mold-attachments';
+import { DeleteButton } from '@/components/shared/delete-button';
 
 export default async function MoldDetailPage({
   params,
@@ -46,7 +47,7 @@ export default async function MoldDetailPage({
             <h1 className="text-3xl font-bold font-headline">{mold.codice}</h1>
             <p className="text-lg text-muted-foreground">{mold.descrizione}</p>
           </div>
-          <div className="text-right space-y-2">
+          <div className="text-right space-y-2 flex items-center gap-2">
             <div>
                 <p className="text-sm text-muted-foreground">Current Status</p>
                 <Badge
@@ -67,6 +68,12 @@ export default async function MoldDetailPage({
                 <Pencil className="mr-2 h-4 w-4" />
                 Edit Mold
             </AdminButton>
+             <DeleteButton 
+                itemId={mold.id}
+                itemType="mold"
+                itemName={mold.codice}
+                redirectPath="/molds"
+              />
           </div>
         </div>
 

@@ -16,6 +16,12 @@ export interface Attachment {
   storagePath: string;
 }
 
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  isChecked: boolean;
+}
+
 export interface Mold {
   id:string;
   codice: string;
@@ -75,7 +81,9 @@ export interface Component {
   peso: number;
   stato: 'Attivo' | 'In modifica' | 'Obsoleto';
   cicliTotali: number;
+  isDeleted: boolean;
   associatedMolds: string[];
+  checklist?: ChecklistItem[];
   datiMateriaPrima?: {
     codiceMaterialeSpecifico?: string;
   };

@@ -13,10 +13,24 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Component } from '@/lib/types';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/context/app-context';
 import { AdminButton } from '@/components/layout/admin-button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { useToast } from '@/hooks/use-toast';
+import { deleteComponent } from '@/lib/data';
+import { useRouter } from 'next/navigation';
 
 interface ComponentsTableProps {
   data: Component[];
@@ -25,6 +39,8 @@ interface ComponentsTableProps {
 export function ComponentsTable({ data }: ComponentsTableProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
   const { user } = useApp();
+  const { toast } = useToast();
+  const router = useRouter();
 
   const getStatusClass = (status: Component['stato']) => {
     switch (status) {
@@ -40,7 +56,7 @@ export function ComponentsTable({ data }: ComponentsTableProps) {
   };
 
   const filteredData = React.useMemo(() => {
-    let components = data;
+    let components = [...data];
     if (user && !user.isAdmin) {
       components = data.filter(c => user.allowedCodes.includes(c.codice));
     }
@@ -54,6 +70,23 @@ export function ComponentsTable({ data }: ComponentsTableProps) {
         c.materiale.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [data, searchTerm, user]);
+
+  const handleDelete = async (component: Component) => {
+    try {
+      await deleteComponent(component.id);
+      toast({
+        title: 'Component Deleted',
+        description: `Component "${component.codice}" has been moved to the archive.`,
+      });
+      router.refresh();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'An error occurred while deleting the component.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -97,10 +130,31 @@ export function ComponentsTable({ data }: ComponentsTableProps) {
                     {c.stato}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right space-x-2">
                   <Button variant="outline" size="sm" asChild>
                     <Link href={`/components/${c.id}`}>View Details</Link>
                   </Button>
+                  {user?.isAdmin && (
+                     <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-9 w-9">
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will archive the component. It won't be permanently deleted, but it will be hidden from the main list.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(c)}>Archive</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
