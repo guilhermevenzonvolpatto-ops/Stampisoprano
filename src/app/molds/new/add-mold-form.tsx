@@ -30,6 +30,7 @@ import { createMold } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 import type { Mold } from '@/lib/types';
 import { PlusCircle, Trash2 } from 'lucide-react';
+import { useApp } from '@/context/app-context';
 
 const customFieldSchema = z.object({
   key: z.string().min(1, 'Field name is required.'),
@@ -58,6 +59,7 @@ interface AddMoldFormProps {
 export function AddMoldForm({ allMolds }: AddMoldFormProps) {
     const { toast } = useToast();
     const router = useRouter();
+    const { user } = useApp();
     const [isSubmitting, setIsSubmitting] = React.useState(false);
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -65,10 +67,10 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
         defaultValues: {
             codice: '',
             descrizione: '',
-            padre: '',
+            padre: '__none__',
             posizioneType: 'interna',
             posizioneValue: '',
-            macchinaAssociata: '',
+            macchinaAssociata: '__none__',
             impronte: undefined,
             materialeCostruzione: '',
             dimensioniPeso: '',
@@ -96,12 +98,12 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
             const newMoldData: Omit<Mold, 'id' | 'data' | 'stato' | 'isDeleted'> = {
                 codice: values.codice,
                 descrizione: values.descrizione,
-                padre: values.padre || null,
+                padre: values.padre === '__none__' ? null : values.padre,
                 posizione: {
                     type: values.posizioneType,
                     value: values.posizioneValue,
                 },
-                macchinaAssociata: values.macchinaAssociata || null,
+                macchinaAssociata: values.macchinaAssociata === '__none__' ? null : values.macchinaAssociata,
                 datiTecnici: {
                     impronte: values.impronte,
                     materialeCostruzione: values.materialeCostruzione,
@@ -191,7 +193,7 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
                                         </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="">No Parent</SelectItem>
+                                            <SelectItem value="__none__">No Parent</SelectItem>
                                             {allMolds.filter(m => !m.padre).map(mold => (
                                                 <SelectItem key={mold.id} value={mold.id}>{mold.codice} - {mold.descrizione}</SelectItem>
                                             ))}
@@ -301,19 +303,21 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
                                 </FormItem>
                             )}
                         />
-                        <FormField
-                            control={form.control}
-                            name="costoAcquisto"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Purchase Cost (€)</FormLabel>
-                                <FormControl>
-                                    <Input type="number" placeholder="e.g., 50000" {...field} value={field.value ?? ''} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                         {user?.isAdmin && (
+                            <FormField
+                                control={form.control}
+                                name="costoAcquisto"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Purchase Cost (€)</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="e.g., 50000" {...field} value={field.value ?? ''} />
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        )}
                         <FormField
                             control={form.control}
                             name="vitaUtileStimata"
@@ -397,5 +401,6 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
     );
 }
 
+    
     
     
