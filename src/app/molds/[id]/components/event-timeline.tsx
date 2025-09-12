@@ -18,7 +18,6 @@ import { EditEventSheet } from './edit-event-sheet';
 import { AddEventSheet } from './add-event-sheet';
 import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/context/app-context';
-import { AdminButton } from '@/components/layout/admin-button';
 
 interface EventTimelineProps {
   moldId: string;
@@ -58,7 +57,7 @@ export function EventTimeline({ moldId }: EventTimelineProps) {
   }
 
   const handleEventClick = (event: MoldEvent) => {
-    if (user?.isAdmin && event.status !== 'Chiuso') {
+    if (user && event.status !== 'Chiuso') {
       setSelectedEvent(event);
     }
   }
@@ -68,7 +67,7 @@ export function EventTimeline({ moldId }: EventTimelineProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Event History</CardTitle>
-          {user?.isAdmin && (
+          {user && (
             <Button variant="outline" size="sm" onClick={() => setIsAddSheetOpen(true)}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Event
@@ -88,7 +87,7 @@ export function EventTimeline({ moldId }: EventTimelineProps) {
                   key={event.id}
                   className={cn(
                     "flex gap-4 p-2 rounded-md",
-                    !isClosed && user?.isAdmin && "cursor-pointer hover:bg-muted"
+                    !isClosed && user && "cursor-pointer hover:bg-muted"
                   )}
                   onClick={() => handleEventClick(event)}
                 >
