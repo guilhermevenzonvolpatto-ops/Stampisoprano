@@ -9,8 +9,10 @@ import {
 import { getStats } from '@/lib/data';
 import { Package, Wrench, Globe } from 'lucide-react';
 import * as React from 'react';
+import { useApp } from '@/context/app-context';
 
 export function StatsCards() {
+  const { user } = useApp();
   const [stats, setStats] = React.useState({
     totalMolds: 0,
     maintenanceMolds: 0,
@@ -47,18 +49,20 @@ export function StatsCards() {
           </p>
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">External Molds</CardTitle>
-          <Globe className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.externalMolds}</div>
-          <p className="text-xs text-muted-foreground">
-            Molds located at external suppliers
-          </p>
-        </CardContent>
-      </Card>
+      {user?.isAdmin && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">External Molds</CardTitle>
+            <Globe className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.externalMolds}</div>
+            <p className="text-xs text-muted-foreground">
+              Molds located at external suppliers
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
