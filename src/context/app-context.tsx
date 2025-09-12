@@ -16,45 +16,64 @@ type AppContextType = {
 
 const AppContext = React.createContext<AppContextType | undefined>(undefined);
 
+function FullPageSpinner() {
+  return (
+    <div className="flex h-screen w-screen items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+    </div>
+  );
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<User | null>(null);
   const [language, setLanguage] = React.useState<'en' | 'it'>('en');
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [isClient, setIsClient] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true); // Start in loading state
   const router = useRouter();
   const pathname = usePathname();
   
-  React.useEffect(() => {
-    setIsClient(true);
-  }, []);
+  const logout = React.useCallback(() => {
+    sessionStorage.removeItem('activeUser');
+    setUser(null);
+    if (pathname !== '/') {
+        router.push('/');
+    }
+  }, [router, pathname]);
+
 
   React.useEffect(() => {
-    if (!isClient) return;
-
     const activeUserCode = sessionStorage.getItem('activeUser');
     if (activeUserCode) {
-       getUser(activeUserCode)
+      getUser(activeUserCode)
         .then((user) => {
-            if(user) {
-              setUser(user);
-              if (pathname === '/') {
-                router.replace('/dashboard');
-              }
-            } else {
-              // User in session storage not found in db
-              logout();
-            }
+          if (user) {
+            setUser(user);
+          } else {
+            // User in session storage not found in db, so log out
+            logout();
+          }
         })
-        .catch(() => logout())
-        .finally(() => setIsLoading(false));
+        .catch(() => {
+          logout();
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
     } else {
-       setIsLoading(false);
-       if (pathname !== '/') {
-         router.replace('/');
-       }
+      // No user in session storage
+      setIsLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isClient, pathname, router]);
+  }, [logout]);
+  
+  React.useEffect(() => {
+      if (!isLoading) {
+          if (user && pathname === '/') {
+              router.replace('/dashboard');
+          } else if (!user && pathname !== '/') {
+              router.replace('/');
+          }
+      }
+  }, [user, isLoading, pathname, router])
+
 
   const loginAs = async (userCode: string) => {
     const newUser = await getUser(userCode);
@@ -66,42 +85,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
     return false;
   };
-  
-  const logout = () => {
-    sessionStorage.removeItem('activeUser');
-    setUser(null);
-    setIsLoading(false);
-    router.push('/');
-  };
 
   const value = { user, language, setLanguage, loginAs, logout };
 
-  if (!isClient || isLoading) {
-      return (
-        <div className="flex h-screen w-screen items-center justify-center">
-             <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-        </div>
-      )
+  if (isLoading) {
+      return <FullPageSpinner />;
   }
 
+  // Prevent flicker on initial load / redirect
   if (!user && pathname !== '/') {
-    // If not logged in and not on the login page, show loading while redirecting
-     return (
-        <div className="flex h-screen w-screen items-center justify-center">
-             <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-        </div>
-      )
-  }
-  
-  if (user && pathname === '/') {
-    // If logged in and on the login page, show loading while redirecting
-     return (
-        <div className="flex h-screen w-screen items-center justify-center">
-             <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-        </div>
-      )
+    return <FullPageSpinner />;
   }
 
+  if (user && pathname === '/') {
+    return <FullPageSpinner />;
+  }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
