@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { PlusCircle, Trash2, Loader2, Edit, Save } from 'lucide-react';
+import { PlusCircle, Trash2, Loader2, Edit, Save, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateComponent } from '@/lib/data';
 import { v4 as uuidv4 } from 'uuid';
