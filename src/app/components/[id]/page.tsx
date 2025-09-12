@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, Pencil } from 'lucide-react';
+import { ChevronLeft, Pencil, FilePenLine } from 'lucide-react';
 import Link from 'next/link';
 import type { Mold, Component, Machine } from '@/lib/types';
 import { RestrictedPage } from '@/components/layout/restricted-page';
@@ -18,6 +18,8 @@ import { ComponentAttachments } from '../attachments';
 import { ProductionHistory } from '../production-history';
 import { AdminButton } from '@/components/layout/admin-button';
 import { StampingHistory } from './stamping-history';
+import { Button } from '@/components/ui/button';
+import { useApp } from '@/context/app-context';
 
 export default async function ComponentDetailPage({
   params,
@@ -87,10 +89,12 @@ export default async function ComponentDetailPage({
                 {component.stato}
                 </Badge>
              </div>
-              <AdminButton href={`/components/${component.id}/edit`} variant="outline" size="sm">
-                  <Pencil className="mr-2 h-4 w-4" />
-                  Edit Component
-              </AdminButton>
+              <Button asChild variant="outline" size="sm">
+                  <Link href={`/components/${component.id}/edit`}>
+                    <FilePenLine className="mr-2 h-4 w-4" />
+                    Edit Stamping Data
+                  </Link>
+              </Button>
           </div>
         </div>
 

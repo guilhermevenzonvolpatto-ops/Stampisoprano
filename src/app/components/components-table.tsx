@@ -42,7 +42,7 @@ export function ComponentsTable({ data }: ComponentsTableProps) {
   const filteredData = React.useMemo(() => {
     let components = data;
     if (user && !user.isAdmin) {
-      components = components.filter(c => user.allowedCodes.includes(c.codice));
+      components = data.filter(c => user.allowedCodes.includes(c.codice));
     }
     
     if (!searchTerm) return components;
@@ -91,7 +91,7 @@ export function ComponentsTable({ data }: ComponentsTableProps) {
                 <TableCell className="font-medium">{c.codice}</TableCell>
                 <TableCell>{c.descrizione}</TableCell>
                 <TableCell>{c.materiale}</TableCell>
-                <TableCell>{c.cicliTotali.toLocaleString()}</TableCell>
+                <TableCell>{(c.cicliTotali || 0).toLocaleString()}</TableCell>
                 <TableCell>
                   <Badge variant="secondary" className={getStatusClass(c.stato)}>
                     {c.stato}
