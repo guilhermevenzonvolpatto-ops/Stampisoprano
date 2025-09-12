@@ -1,4 +1,10 @@
 
+// This script is for seeding your local Firestore database for development.
+// It is not required for Vercel deployment.
+// To run this script:
+// 1. Download your Firebase service account key and save it as 'serviceAccountKey.json' in the root.
+// 2. Run `npm install firebase-admin`
+// 3. Run `node seed.js`
 const admin = require('firebase-admin');
 
 // IMPORTANT: Make sure you have downloaded your service account key and
