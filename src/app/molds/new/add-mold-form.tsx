@@ -98,7 +98,7 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
             const newMoldData: Omit<Mold, 'id' | 'data' | 'stato' | 'isDeleted'> = {
                 codice: values.codice,
                 descrizione: values.descrizione,
-                padre: values.padre === '__none__' ? null : values.padre,
+                padre: values.padre === '__none__' || !values.padre ? null : values.padre,
                 posizione: {
                     type: values.posizioneType,
                     value: values.posizioneValue,
@@ -403,4 +403,6 @@ export function AddMoldForm({ allMolds }: AddMoldFormProps) {
 
     
     
+    
+
     
