@@ -133,20 +133,17 @@ export const getMolds = async (): Promise<Mold[]> => {
     const q = query(moldsCol, where('isDeleted', '==', false));
     const snapshot = await getDocs(q);
     const moldList = snapshot.docs.map(docToMold);
-    // client-side nesting
     const moldMap = new Map(moldList.map(m => [m.id, {...m, children: [] as Mold[]}]));
     const topLevelMolds: Mold[] = [];
 
-    for(const mold of moldList) {
+    moldMap.forEach(mold => {
         if (mold.padre && moldMap.has(mold.padre)) {
-            const parent = moldMap.get(mold.padre);
-            if (parent) {
-                parent.children?.push(moldMap.get(mold.id)!);
-            }
+            moldMap.get(mold.padre)?.children?.push(mold);
         } else {
-            topLevelMolds.push(moldMap.get(mold.id)!);
+            topLevelMolds.push(mold);
         }
-    }
+    });
+
     return topLevelMolds;
 };
 
@@ -358,9 +355,8 @@ export const getProductionLogsForComponent = async (componentId: string): Promis
 export const getStampingHistoryForComponent = async (componentId: string): Promise<StampingDataHistoryEntry[]> => {
     const q = query(stampingHistoryCol, where('componentId', '==', componentId), orderBy('timestamp', 'desc'));
     const snapshot = await getDocs(q);
-    // return snapshot.docs.map(docToStampingDataHistoryEntry);
     const entries = snapshot.docs.map(docToStampingDataHistoryEntry);
-    return entries.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    return entries;
 };
 
 export const updateProductionLog = async (id: string, updates: Partial<ProductionLog>): Promise<ProductionLog | null> => {
