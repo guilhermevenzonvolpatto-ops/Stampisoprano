@@ -33,7 +33,8 @@ export default function LoginPage() {
     const success = await loginAs(code);
     
     if (success) {
-      router.push('/dashboard');
+      // The redirect is now handled by the AppProvider
+      // router.push('/dashboard'); 
     } else {
       toast({
         title: t('loginFailed'),

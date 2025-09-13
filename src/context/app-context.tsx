@@ -95,7 +95,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (newUser) {
       sessionStorage.setItem('activeUser', userCode);
       setUser(newUser);
-      router.push('/dashboard');
       return true;
     }
     return false;

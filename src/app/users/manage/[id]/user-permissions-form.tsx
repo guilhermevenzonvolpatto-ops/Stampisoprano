@@ -9,10 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { updateUser } from '@/lib/data';
+import { updateUser, getMachines } from '@/lib/data';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRouter } from 'next/navigation';
-import { getMachines } from '@/lib/data';
+
 
 interface UserPermissionsFormProps {
   user: User;
