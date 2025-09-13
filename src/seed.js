@@ -1,4 +1,5 @@
 
+
 const admin = require('firebase-admin');
 
 // IMPORTANT: Make sure you have downloaded your service account key and
@@ -14,7 +15,7 @@ console.log('Firebase Admin Initialized.');
 
 const users = {
     'guilhermevolp93': { id: 'guilhermevolp93', name: 'Guilherme Volpato', isAdmin: true, allowedCodes: [] },
-    'user01': { id: 'user01', name: 'Normal User', isAdmin: false, allowedCodes: ['ST-001', 'COMP-A1'] },
+    'user01': { id: 'user01', name: 'Normal User', isAdmin: false, allowedCodes: ['ST-001', 'COMP-A1', 'MAC-01'] },
     'admin': { id: 'admin', name: 'Admin User', isAdmin: true, allowedCodes: [] },
 };
 
@@ -50,14 +51,14 @@ const molds = {
 };
 
 const components = {
-    'COMP-A1': { id: 'COMP-A1', codice: 'COMP-A1', descrizione: 'Coperchio Superiore', materiale: 'ABS', peso: 120.5, stato: 'Attivo', cicliTotali: 12500, associatedMolds: ['ST-001'], customFields: { 'Finitura': 'Lucida', 'Colore RAL': '9010' } },
-    'COMP-B2': { id: 'COMP-B2', codice: 'COMP-B2', descrizione: 'Base Inferiore', materiale: 'PC-ABS', peso: 250.0, stato: 'Attivo', cicliTotali: 8760, associatedMolds: ['ST-001', 'ST-003'] },
-    'COMP-C3': { id: 'COMP-C3', codice: 'COMP-C3', descrizione: 'Guarnizione', materiale: 'TPE', peso: 15.2, stato: 'Obsoleto', cicliTotali: 50000, associatedMolds: ['ST-002'] },
+    'COMP-A1': { id: 'COMP-A1', codice: 'COMP-A1', descrizione: 'Coperchio Superiore', materiale: 'ABS', peso: 120.5, stato: 'Attivo', cicliTotali: 12500, isDeleted: false, associatedMolds: ['ST-001'], customFields: { 'Finitura': 'Lucida', 'Colore RAL': '9010' } },
+    'COMP-B2': { id: 'COMP-B2', codice: 'COMP-B2', descrizione: 'Base Inferiore', materiale: 'PC-ABS', peso: 250.0, stato: 'Attivo', cicliTotali: 8760, isDeleted: false, associatedMolds: ['ST-001', 'ST-003'] },
+    'COMP-C3': { id: 'COMP-C3', codice: 'COMP-C3', descrizione: 'Guarnizione', materiale: 'TPE', peso: 15.2, stato: 'Obsoleto', cicliTotali: 50000, isDeleted: false, associatedMolds: ['ST-002'] },
 };
 
 const machines = {
-    'MAC-01': { id: 'MAC-01', codice: 'MAC-01', descrizione: 'Pressa Arburg 200T', tipo: 'Iniezione', stato: 'Operativo', customFields: { 'Numero Serie': 'SN-582294', 'Data Installazione': '2021-03-15' } },
-    'MAC-02': { id: 'MAC-02', codice: 'MAC-02', descrizione: 'Pressa Engel 300T', tipo: 'Iniezione', stato: 'In Manutenzione' },
+    'MAC-01': { id: 'MAC-01', codice: 'MAC-01', descrizione: 'Pressa Arburg 200T', tipo: 'Iniezione', stato: 'Operativo', isDeleted: false, customFields: { 'Numero Serie': 'SN-582294', 'Data Installazione': '2021-03-15' } },
+    'MAC-02': { id: 'MAC-02', codice: 'MAC-02', descrizione: 'Pressa Engel 300T', tipo: 'Iniezione', stato: 'In Manutenzione', isDeleted: false },
 };
 
 const eventsData = [

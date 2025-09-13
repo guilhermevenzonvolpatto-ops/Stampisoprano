@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { getMold, getComponentsForMold } from '@/lib/data';
+import { getMold, getComponentsForMold, getEventsForSource } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import {
   Card,
@@ -37,16 +38,21 @@ export default function MoldDetailPage({
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
-    const moldData = await getMold(params.id);
-    if (!moldData) {
-        notFound();
-        return;
-    }
-    setMold(moldData);
+    try {
+      const moldData = await getMold(params.id);
+      if (!moldData) {
+          notFound();
+          return;
+      }
+      setMold(moldData);
 
-    const componentsData = await getComponentsForMold(moldData.id);
-    setAssociatedComponents(componentsData);
-    setIsLoading(false);
+      const componentsData = await getComponentsForMold(moldData.id);
+      setAssociatedComponents(componentsData);
+    } catch (error) {
+        console.error("Failed to fetch mold data:", error);
+    } finally {
+        setIsLoading(false);
+    }
   }, [params.id]);
 
   useEffect(() => {
@@ -188,7 +194,7 @@ export default function MoldDetailPage({
             <AssociatedComponents components={associatedComponents} moldId={mold.id} onUpdate={fetchData} />
           </div>
           <div className="lg:col-span-1">
-            <EventTimeline moldId={mold.id} />
+            <EventTimeline sourceId={mold.id} />
           </div>
         </div>
       </div>

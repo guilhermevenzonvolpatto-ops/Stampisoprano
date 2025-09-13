@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import * as React from 'react';
 import type { MoldEvent } from '@/lib/types';
-import { getEventsForMold } from '@/lib/data';
+import { getEventsForSource } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Wrench, HardHat, CircleDollarSign, Info, CheckCircle2, PlusCircle, Settings } from 'lucide-react';
@@ -20,7 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/context/app-context';
 
 interface EventTimelineProps {
-  moldId: string;
+  sourceId: string;
 }
 
 const eventTypeConfig = {
@@ -36,15 +37,15 @@ function getEventTypeStyle(type: MoldEvent['type']) {
   return eventTypeConfig[type] || eventTypeConfig.Altro;
 }
 
-export function EventTimeline({ moldId }: EventTimelineProps) {
+export function EventTimeline({ sourceId }: EventTimelineProps) {
   const [events, setEvents] = React.useState<MoldEvent[]>([]);
   const [selectedEvent, setSelectedEvent] = React.useState<MoldEvent | null>(null);
   const [isAddSheetOpen, setIsAddSheetOpen] = React.useState(false);
   const { user, t } = useApp();
 
   const fetchEvents = React.useCallback(() => {
-    getEventsForMold(moldId).then(setEvents);
-  }, [moldId]);
+    getEventsForSource(sourceId).then(setEvents);
+  }, [sourceId]);
 
   React.useEffect(() => {
     fetchEvents();
@@ -139,7 +140,7 @@ export function EventTimeline({ moldId }: EventTimelineProps) {
         />
       )}
        <AddEventSheet
-          sourceId={moldId}
+          sourceId={sourceId}
           isOpen={isAddSheetOpen}
           onClose={() => setIsAddSheetOpen(false)}
           onUpdate={handleEventUpdate}

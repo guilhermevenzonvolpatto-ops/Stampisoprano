@@ -191,15 +191,44 @@ export const deleteComponent = async (id: string): Promise<void> => {
 }
 
 export const getMachines = async (): Promise<Machine[]> => {
-    const snapshot = await getDocs(machinesCol);
+    const q = query(machinesCol, where('isDeleted', '==', false), orderBy('codice'));
+    const snapshot = await getDocs(q);
     return snapshot.docs.map(docToMachine);
 }
 
 export const getMachine = async (id: string): Promise<Machine | null> => {
     const docRef = doc(db, 'machines', id);
     const docSnap = await getDoc(docRef);
-    return docSnap.exists() ? docToMachine(docSnap) : null;
+    if (!docSnap.exists() || docSnap.data().isDeleted) return null;
+    return docToMachine(docSnap);
 }
+
+export const createMachine = async (data: Omit<Machine, 'id' | 'stato' | 'isDeleted'>): Promise<Machine | { error: string }> => {
+    const docRef = doc(machinesCol, data.codice);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+        return { error: 'Machine with this code already exists.' };
+    }
+    const newMachine = {
+        ...data,
+        stato: 'Operativo' as Machine['stato'],
+        isDeleted: false,
+    };
+    await setDoc(docRef, newMachine);
+    return { id: docRef.id, ...newMachine } as Machine;
+};
+
+export const updateMachine = async (id: string, updates: Partial<Machine>): Promise<Machine | null> => {
+    const docRef = doc(db, 'machines', id);
+    await updateDoc(docRef, updates);
+    return getMachine(id);
+}
+
+export const deleteMachine = async (id: string): Promise<void> => {
+    const docRef = doc(db, 'machines', id);
+    await updateDoc(docRef, { isDeleted: true });
+}
+
 
 export const updateComponent = async (id: string, updates: Partial<Component>): Promise<Component | null> => {
     const docRef = doc(db, 'components', id);
@@ -334,13 +363,13 @@ export const getUpcomingEvents = async (): Promise<MoldEvent[]> => {
     }
 }
 
-export const getEventsForMold = async (sourceId: string): Promise<MoldEvent[]> => {
+export const getEventsForSource = async (sourceId: string): Promise<MoldEvent[]> => {
     try {
         const q = query(eventsCol, where('sourceId', '==', sourceId), orderBy('timestamp', 'desc'));
         const snapshot = await getDocs(q);
         return snapshot.docs.map(docToEvent);
     } catch(e) {
-        console.error(`Error getting events for mold ${sourceId}:`, e);
+        console.error(`Error getting events for ${sourceId}:`, e);
         return [];
     }
 }
@@ -460,13 +489,15 @@ export const updateEvent = async (id: string, updates: Partial<MoldEvent>): Prom
     await updateDoc(docRef, updates);
     const updatedEvent = await getEvent(id);
     if (updatedEvent && updates.status === 'Chiuso') {
-        const mold = await getMold(updatedEvent.sourceId);
-        if (mold) {
-            const otherEvents = await getEventsForMold(updatedEvent.sourceId);
+        const source = (await getMold(updatedEvent.sourceId)) || (await getMachine(updatedEvent.sourceId));
+
+        if (source) {
+            const otherEvents = await getEventsForSource(updatedEvent.sourceId);
             const hasOpenEvents = otherEvents.some(e => e.id !== id && e.status === 'Aperto');
-            // If this was the last open event, set mold to Operativo
+            
             if (!hasOpenEvents) {
-                await updateMold(mold.id, { stato: 'Operativo' });
+                const updateFn = 'data' in source ? updateMold : updateMachine;
+                await updateFn(source.id, { stato: 'Operativo' });
             }
         }
     }
@@ -487,7 +518,7 @@ export const createEvent = async (eventData: Omit<MoldEvent, 'id' | 'timestamp' 
     };
     const docRef = await addDoc(eventsCol, newEventData);
 
-    let newStatus: Mold['stato'] | null = null;
+    let newStatus: Mold['stato'] | Machine['stato'] | null = null;
     if (eventData.type === 'Manutenzione' || eventData.type === 'Riparazione') {
         newStatus = 'In Manutenzione';
     } else if (eventData.type === 'Lavorazione') {
@@ -495,7 +526,11 @@ export const createEvent = async (eventData: Omit<MoldEvent, 'id' | 'timestamp' 
     }
 
     if (newStatus) {
-         await updateMold(eventData.sourceId, { stato: newStatus });
+         const source = await getMold(eventData.sourceId) || await getMachine(eventData.sourceId);
+         if (source) {
+            const updateFn = 'data' in source ? updateMold : updateMachine;
+            await updateFn(source.id, { stato: newStatus as any });
+         }
     }
 
     return {
@@ -518,7 +553,7 @@ const getFileType = (fileName: string): Attachment['fileType'] => {
 
 export async function uploadFileAndCreateAttachment(
     itemId: string,
-    itemType: 'mold' | 'component',
+    itemType: 'mold' | 'component' | 'machine',
     file: File
 ): Promise<{ success: boolean; error?: string }> {
     try {
@@ -552,7 +587,7 @@ export async function uploadFileAndCreateAttachment(
 
 export async function deleteAttachment(
     itemId: string,
-    itemType: 'mold' | 'component',
+    itemType: 'mold' | 'component' | 'machine',
     attachment: Attachment
 ): Promise<{ success: boolean; error?: string }> {
      try {

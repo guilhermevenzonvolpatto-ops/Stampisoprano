@@ -1,8 +1,9 @@
 
+
 'use client';
 
 import * as React from 'react';
-import type { Mold, Component } from '@/lib/types';
+import type { Mold, Component, Machine } from '@/lib/types';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -18,14 +19,14 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { updateComponent, updateMold } from '@/lib/data';
+import { updateComponent, updateMold, updateMachine } from '@/lib/data';
 import { Trash2, PlusCircle, Edit } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useRouter } from 'next/navigation';
 
 interface EditCustomFieldsProps {
-  item: Mold | Component;
-  itemType: 'mold' | 'component';
+  item: Mold | Component | Machine;
+  itemType: 'mold' | 'component' | 'machine';
 }
 
 const customFieldSchema = z.object({
@@ -70,11 +71,14 @@ export function EditCustomFields({ item, itemType }: EditCustomFieldsProps) {
     }, {} as Record<string, string>);
 
     try {
-      if (itemType === 'mold') {
-          await updateMold(item.id, { customFields: customFieldsObject });
-      } else {
-          await updateComponent(item.id, { customFields: customFieldsObject });
-      }
+        let updateAction;
+        switch(itemType) {
+            case 'mold': updateAction = updateMold; break;
+            case 'component': updateAction = updateComponent; break;
+            case 'machine': updateAction = updateMachine; break;
+        }
+        await updateAction(item.id, { customFields: customFieldsObject });
+      
       toast({
         title: 'Success',
         description: 'Custom fields have been updated.',

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -45,6 +46,8 @@ export function MainNav() {
       <nav className="flex items-center gap-4 text-sm lg:gap-6">
         {routes.map((route) => {
             if (route.admin && !user?.isAdmin) return null;
+            if (!user && (route.href !== '/')) return null;
+            if (user && route.href === '/') return null;
             return (
               <Link
                 key={route.href}

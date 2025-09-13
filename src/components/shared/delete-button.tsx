@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -18,11 +19,11 @@ import {
 import { useApp } from '@/context/app-context';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { deleteMold, deleteComponent } from '@/lib/data';
+import { deleteMold, deleteComponent, deleteMachine } from '@/lib/data';
 
 interface DeleteButtonProps {
     itemId: string;
-    itemType: 'mold' | 'component';
+    itemType: 'mold' | 'component' | 'machine';
     itemName: string;
     redirectPath: string;
 }
@@ -34,7 +35,21 @@ export function DeleteButton({ itemId, itemType, itemName, redirectPath }: Delet
 
     const handleDelete = async () => {
         try {
-            const deleteAction = itemType === 'mold' ? deleteMold : deleteComponent;
+            let deleteAction;
+            switch(itemType) {
+                case 'mold':
+                    deleteAction = deleteMold;
+                    break;
+                case 'component':
+                    deleteAction = deleteComponent;
+                    break;
+                case 'machine':
+                    deleteAction = deleteMachine;
+                    break;
+                default:
+                    throw new Error("Invalid item type");
+            }
+
             await deleteAction(itemId);
             
             toast({

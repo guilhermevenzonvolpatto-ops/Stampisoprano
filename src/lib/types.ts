@@ -100,6 +100,7 @@ export interface Machine {
   descrizione: string;
   tipo: string;
   stato: 'Operativo' | 'In Manutenzione' | 'Fermo';
+  isDeleted: boolean;
   customFields?: Record<string, any>;
 }
 
