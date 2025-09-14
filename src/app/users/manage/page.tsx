@@ -15,12 +15,14 @@ import { CheckCircle, XCircle, ChevronRight, ShieldCheck, PlusCircle } from 'luc
 import { RestrictedPage } from '@/components/layout/restricted-page';
 import Link from 'next/link';
 import { AdminButton } from '@/components/layout/admin-button';
+import Header from '@/components/layout/header';
 
 export default async function ManageUsersPage() {
   const users = await getUsers();
 
   return (
     <RestrictedPage adminOnly>
+      <Header />
       <div className="container mx-auto py-10">
         <div className="flex justify-between items-center mb-6">
             <div>
