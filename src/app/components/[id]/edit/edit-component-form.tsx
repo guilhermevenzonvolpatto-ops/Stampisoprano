@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -37,6 +38,7 @@ const formSchema = z.object({
   materiale: z.string().min(1, 'Material is required.'),
   peso: z.coerce.number().positive('Weight must be a positive number.'),
   stato: z.enum(['Attivo', 'In modifica', 'Obsoleto']),
+  dataRilascio: z.string().optional(),
   associatedMolds: z.array(z.string()).optional(),
   // Stamping Data
   programName: z.string().optional(),
@@ -72,6 +74,7 @@ export function EditComponentForm({ component, allMolds }: EditComponentFormProp
       materiale: component.materiale,
       peso: component.peso,
       stato: component.stato,
+      dataRilascio: component.dataRilascio || '',
       associatedMolds: component.associatedMolds || [],
       programName: component.stampingData?.programName || undefined,
       cycleTime: component.stampingData?.cycleTime || undefined,
@@ -121,6 +124,7 @@ export function EditComponentForm({ component, allMolds }: EditComponentFormProp
             componentData.materiale = values.materiale;
             componentData.peso = values.peso;
             componentData.stato = values.stato;
+            componentData.dataRilascio = values.dataRilascio;
             componentData.associatedMolds = values.associatedMolds;
         }
         
@@ -233,6 +237,19 @@ export function EditComponentForm({ component, allMolds }: EditComponentFormProp
                         </FormItem>
                     )}
                 />
+                <FormField
+                    control={form.control}
+                    name="dataRilascio"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Release Date</FormLabel>
+                        <FormControl>
+                            <Input type="date" {...field} value={field.value ?? ''} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
             </CardContent>
             </Card>
         )}

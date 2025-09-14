@@ -92,6 +92,7 @@ export interface Component {
   stampingData?: StampingData;
   customFields?: Record<string, any>;
   attachments?: Attachment[];
+  dataRilascio?: string;
 }
 
 export interface Machine {

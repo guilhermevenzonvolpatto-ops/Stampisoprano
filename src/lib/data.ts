@@ -434,27 +434,29 @@ export const createEvent = async (eventData: Omit<MoldEvent, 'id' | 'timestamp' 
     };
     const docRef = await addDoc(eventsCol, newEventData);
 
-    const sourceIsMold = eventData.sourceId.startsWith('ST-');
     let newStatus: Mold['stato'] | Machine['stato'] | null = null;
-    
     if (eventData.type === 'Manutenzione' || eventData.type === 'Riparazione') {
         newStatus = 'In Manutenzione';
     } else if (eventData.type === 'Lavorazione') {
         newStatus = 'Lavorazione';
     }
-
+    
     if (newStatus) {
-        if (sourceIsMold) {
-             await updateMold(eventData.sourceId, { stato: newStatus as Mold['stato'] });
+        const moldDoc = await getDoc(doc(moldsCol, eventData.sourceId));
+        if (moldDoc.exists()) {
+            await updateDoc(moldDoc.ref, { stato: newStatus });
         } else {
-             await updateMachine(eventData.sourceId, { stato: newStatus as Machine['stato'] });
+            const machineDoc = await getDoc(doc(machinesCol, eventData.sourceId));
+            if (machineDoc.exists()) {
+                await updateDoc(machineDoc.ref, { stato: newStatus });
+            }
         }
     }
 
     return {
         id: docRef.id,
         ...newEventData,
-        timestamp: new Date(), // Return a client-side date for immediate use
+        timestamp: new Date(),
     };
 };
 
@@ -477,11 +479,14 @@ export const updateEvent = async (id: string, updates: Partial<MoldEvent>): Prom
         ));
 
         if (otherOpenEvents.empty) {
-            const sourceIsMold = updatedEvent.sourceId.startsWith('ST-');
-            if (sourceIsMold) {
-                await updateMold(updatedEvent.sourceId, { stato: 'Operativo' });
+            const moldDoc = await getDoc(doc(moldsCol, updatedEvent.sourceId));
+            if (moldDoc.exists()) {
+                await updateDoc(moldDoc.ref, { stato: 'Operativo' });
             } else {
-                await updateMachine(updatedEvent.sourceId, { stato: 'Operativo' });
+                const machineDoc = await getDoc(doc(machinesCol, updatedEvent.sourceId));
+                if (machineDoc.exists()) {
+                    await updateDoc(machineDoc.ref, { stato: 'Operativo' });
+                }
             }
         }
     }

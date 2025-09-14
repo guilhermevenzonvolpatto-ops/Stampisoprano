@@ -129,6 +129,12 @@ export default async function ComponentDetailPage({
                     <p className="font-semibold">Total Cycles</p>
                     <p className="text-muted-foreground">{(component.cicliTotali || 0).toLocaleString()}</p>
                     </div>
+                    {component.dataRilascio && (
+                    <div>
+                        <p className="font-semibold">Release Date</p>
+                        <p className="text-muted-foreground">{component.dataRilascio}</p>
+                    </div>
+                    )}
                     {component.datiMateriaPrima?.codiceMaterialeSpecifico && (
                     <div>
                         <p className="font-semibold">Specific Material Code</p>

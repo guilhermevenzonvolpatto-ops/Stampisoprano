@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -34,6 +35,7 @@ const formSchema = z.object({
   descrizione: z.string().min(1, 'Description is required.'),
   materiale: z.string().min(1, 'Material is required.'),
   peso: z.coerce.number().positive('Weight must be a positive number.'),
+  dataRilascio: z.string().optional(),
   associatedMolds: z.array(z.string()).optional(),
   customFields: z.array(customFieldSchema).optional(),
   injectionTime: z.coerce.number().optional(),
@@ -58,6 +60,7 @@ export function AddComponentForm({ allMolds }: AddComponentFormProps) {
       descrizione: '',
       materiale: '',
       peso: undefined,
+      dataRilascio: '',
       associatedMolds: [],
       customFields: [],
       injectionTime: undefined,
@@ -92,6 +95,7 @@ export function AddComponentForm({ allMolds }: AddComponentFormProps) {
         descrizione: values.descrizione,
         materiale: values.materiale,
         peso: values.peso,
+        dataRilascio: values.dataRilascio,
         associatedMolds: values.associatedMolds || [],
         customFields: customFieldsObject,
         stampingData: stampingData,
@@ -180,6 +184,19 @@ export function AddComponentForm({ allMolds }: AddComponentFormProps) {
                   <FormLabel>Weight (grams)</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="e.g., 85.5" {...field} value={field.value ?? ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="dataRilascio"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Release Date</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} value={field.value ?? ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
