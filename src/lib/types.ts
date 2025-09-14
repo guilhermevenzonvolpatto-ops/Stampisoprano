@@ -1,5 +1,4 @@
 
-
 export interface User {
   id: string;
   name: string;
@@ -103,6 +102,7 @@ export interface Machine {
   isDeleted: boolean;
   customFields?: Record<string, any>;
   attachments?: Attachment[];
+  availableAt?: string;
 }
 
 export interface MoldEvent {

@@ -108,6 +108,7 @@ export function MachinesTable({ data }: MachinesTableProps) {
               <TableHead>Description</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Available at</TableHead>
               <TableHead>
                 <span className="sr-only">Actions</span>
               </TableHead>
@@ -127,6 +128,7 @@ export function MachinesTable({ data }: MachinesTableProps) {
                     {machine.stato}
                   </Badge>
                 </TableCell>
+                <TableCell>{machine.availableAt || 'N/A'}</TableCell>
                 <TableCell className="text-right space-x-2">
                     <Button asChild variant="outline" size="sm">
                         <Link href={`/machines/${machine.id}`}>View Details</Link>
