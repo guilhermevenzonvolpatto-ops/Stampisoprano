@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import Link from 'next/link';
@@ -13,11 +12,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Component } from '@/lib/types';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Upload, Download } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/context/app-context';
 import { AdminButton } from '@/components/layout/admin-button';
 import { DeleteButton } from '@/components/shared/delete-button';
+import { ImportComponentsDialog } from './import-components-dialog';
 
 interface ComponentsTableProps {
   data: Component[];
@@ -25,6 +25,7 @@ interface ComponentsTableProps {
 
 export function ComponentsTable({ data }: ComponentsTableProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [isImporting, setIsImporting] = React.useState(false);
   const { user, t } = useApp();
 
   const getStatusClass = (status: Component['stato']) => {
@@ -56,67 +57,114 @@ export function ComponentsTable({ data }: ComponentsTableProps) {
     );
   }, [data, searchTerm, user]);
 
+  const downloadCSV = () => {
+    const headers = ['codice', 'descrizione', 'materiale', 'peso', 'stato', 'cicliTotali', 'associatedMolds'];
+    const csvRows = [headers.join(',')];
+
+    for (const component of data) {
+        const values = [
+            component.codice,
+            `"${component.descrizione.replace(/"/g, '""')}"`,
+            component.materiale,
+            component.peso,
+            component.stato,
+            component.cicliTotali || 0,
+            `"${(component.associatedMolds || []).join(';')}"` // Join multiple molds with a semicolon
+        ];
+        csvRows.push(values.join(','));
+    }
+
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('hidden', '');
+    a.setAttribute('href', url);
+    a.setAttribute('download', `components_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Input
-            placeholder={t('searchComponents')}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-80"
-          />
+    <>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Input
+              placeholder={t('searchComponents')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-80"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            {user?.isAdmin && (
+              <>
+                <Button variant="outline" onClick={() => setIsImporting(true)}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  {t('importCSV')}
+                </Button>
+                <Button variant="outline" onClick={downloadCSV}>
+                  <Download className="mr-2 h-4 w-4" />
+                  {t('downloadCSV')}
+                </Button>
+              </>
+            )}
+            <AdminButton href="/components/new">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                {t('addComponent')}
+            </AdminButton>
+          </div>
         </div>
-        <AdminButton href="/components/new">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            {t('addComponent')}
-        </AdminButton>
-      </div>
-      <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('code')}</TableHead>
-              <TableHead>{t('description')}</TableHead>
-              <TableHead>{t('material')}</TableHead>
-              <TableHead>{t('totalCycles')}</TableHead>
-              <TableHead>{t('status')}</TableHead>
-              <TableHead>
-                <span className="sr-only">{t('actions')}</span>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredData.map((c) => (
-              <TableRow key={c.id}>
-                <TableCell className="font-medium">{c.codice}</TableCell>
-                <TableCell>{c.descrizione}</TableCell>
-                <TableCell>{c.materiale}</TableCell>
-                <TableCell>{(c.cicliTotali || 0).toLocaleString()}</TableCell>
-                <TableCell>
-                  <Badge variant="secondary" className={getStatusClass(c.stato)}>
-                    {c.stato}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right space-x-2">
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={`/components/${c.id}`}>{t('viewDetails')}</Link>
-                  </Button>
-                  {user?.isAdmin && (
-                    <DeleteButton 
-                        itemId={c.id}
-                        itemType="component"
-                        itemName={c.codice}
-                        redirectPath="/components"
-                    />
-                  )}
-                </TableCell>
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('code')}</TableHead>
+                <TableHead>{t('description')}</TableHead>
+                <TableHead>{t('material')}</TableHead>
+                <TableHead>{t('totalCycles')}</TableHead>
+                <TableHead>{t('status')}</TableHead>
+                <TableHead>
+                  <span className="sr-only">{t('actions')}</span>
+                </TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filteredData.map((c) => (
+                <TableRow key={c.id}>
+                  <TableCell className="font-medium">{c.codice}</TableCell>
+                  <TableCell>{c.descrizione}</TableCell>
+                  <TableCell>{c.materiale}</TableCell>
+                  <TableCell>{(c.cicliTotali || 0).toLocaleString()}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className={getStatusClass(c.stato)}>
+                      {c.stato}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right space-x-2">
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={`/components/${c.id}`}>{t('viewDetails')}</Link>
+                    </Button>
+                    {user?.isAdmin && (
+                      <DeleteButton 
+                          itemId={c.id}
+                          itemType="component"
+                          itemName={c.codice}
+                          redirectPath="/components"
+                      />
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
-    </div>
+       <ImportComponentsDialog
+        isOpen={isImporting}
+        onClose={() => setIsImporting(false)}
+      />
+    </>
   );
 }
