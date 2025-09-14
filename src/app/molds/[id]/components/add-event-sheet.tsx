@@ -70,7 +70,7 @@ export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventS
     defaultValues: {
       type: 'Manutenzione',
       descrizione: '',
-      estimatedEndDate: '',
+      estimatedEndDate: new Date().toISOString().split('T')[0],
       costo: '',
       customFields: [],
       programmedMaintenanceTaskId: '__none__',
@@ -112,7 +112,7 @@ export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventS
         estimatedEndDate: values.estimatedEndDate,
         costo: values.costo ? parseFloat(values.costo) : null,
         customFields: customFieldsObject,
-        programmedMaintenanceTaskId: values.programmedMaintenanceTaskId === '__none__' ? undefined : values.programmedMaintenanceTaskId,
+        programmedMaintenanceTaskId: values.programmedMaintenanceTaskId,
       };
 
       await createEvent(eventData);
@@ -135,7 +135,14 @@ export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventS
   
    React.useEffect(() => {
     if (isOpen) {
-      form.reset();
+      form.reset({
+        type: 'Manutenzione',
+        descrizione: '',
+        estimatedEndDate: new Date().toISOString().split('T')[0],
+        costo: '',
+        customFields: [],
+        programmedMaintenanceTaskId: '__none__',
+      });
     }
    }, [isOpen, form]);
 
