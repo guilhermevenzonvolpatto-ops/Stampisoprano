@@ -130,7 +130,7 @@ export interface MaintenanceRequest {
   requesterId: string;
   requesterName: string;
   status: 'pending' | 'approved' | 'rejected';
-  createdAt: any; // Firestore ServerTimestamp
+  createdAt: Date;
 }
 
 export interface ProductionLog {

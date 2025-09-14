@@ -81,6 +81,15 @@ const docToEvent = (doc: any): MoldEvent => {
     } as MoldEvent;
 }
 
+const docToMaintenanceRequest = (doc: any): MaintenanceRequest => {
+    const data = doc.data();
+    return {
+        id: doc.id,
+        ...data,
+        createdAt: (data.createdAt as Timestamp)?.toDate() || new Date(),
+    } as MaintenanceRequest;
+}
+
 const docToProductionLog = (doc: any): ProductionLog => {
     const data = doc.data();
     return {
@@ -549,6 +558,49 @@ export async function createMaintenanceRequest(
     console.error("Error creating maintenance request:", error);
     return { error: "Failed to create maintenance request." };
   }
+}
+
+export async function getMaintenanceRequests(): Promise<MaintenanceRequest[]> {
+    const q = query(maintenanceRequestsCol, orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(docToMaintenanceRequest);
+}
+
+export async function updateMaintenanceRequestStatus(
+    requestId: string,
+    status: 'approved' | 'rejected'
+): Promise<{ success: boolean; error?: string }> {
+    const requestRef = doc(db, 'maintenanceRequests', requestId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const requestDoc = await transaction.get(requestRef);
+            if (!requestDoc.exists()) {
+                throw new Error("Request not found");
+            }
+
+            transaction.update(requestRef, { status });
+
+            if (status === 'approved') {
+                const requestData = requestDoc.data() as MaintenanceRequest;
+                const newEvent: Omit<MoldEvent, 'id' | 'timestamp' | 'status'> = {
+                    sourceId: requestData.sourceId,
+                    type: 'Manutenzione',
+                    descrizione: `(From Request) ${requestData.description}`,
+                    costo: null,
+                    // Default to 2 weeks from now
+                    estimatedEndDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], 
+                };
+                
+                // This will call the existing createEvent logic, which handles status changes on the source item
+                await createEvent(newEvent);
+            }
+        });
+
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error updating maintenance request:", error);
+        return { success: false, error: error.message };
+    }
 }
 
 // Analytics Functions

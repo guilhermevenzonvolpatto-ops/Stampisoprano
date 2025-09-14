@@ -20,7 +20,7 @@ export function MainNav() {
     { href: '/machines', label: t('machines'), icon: HardHat, admin: true },
     { href: '/calendar', label: 'Calendar', icon: Calendar, admin: true },
     { href: '/analytics', label: 'Analytics', icon: BarChart, admin: true },
-    { href: '/requests/new', label: 'Maintenance Requests', icon: Wrench, admin: true },
+    { href: '/requests', label: 'Maintenance Requests', icon: Wrench, admin: true },
     { href: '/users/manage', label: t('users'), icon: Users, admin: true },
   ];
 
@@ -51,13 +51,17 @@ export function MainNav() {
             if (route.admin && !user?.isAdmin) return null;
             if (!user && (route.href !== '/')) return null;
             if (user && route.href === '/') return null;
+            
+            // Special handling for requests to highlight parent path
+            const isActive = pathname === route.href || (route.href === '/requests' && pathname.startsWith('/requests'));
+
             return (
               <Link
                 key={route.href}
                 href={route.href}
                 className={cn(
                   'transition-colors hover:text-foreground/80',
-                  pathname.startsWith(route.href)
+                  isActive
                     ? 'text-foreground'
                     : 'text-foreground/60'
                 )}
