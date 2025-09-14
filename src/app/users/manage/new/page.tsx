@@ -3,10 +3,12 @@ import { AddUserForm } from './add-user-form';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import { RestrictedPage } from '@/components/layout/restricted-page';
+import Header from '@/components/layout/header';
 
 export default function NewUserPage() {
   return (
     <RestrictedPage adminOnly>
+      <Header />
       <div className="container mx-auto py-10">
         <Link
           href="/users/manage"

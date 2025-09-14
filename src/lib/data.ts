@@ -442,13 +442,16 @@ export const createEvent = async (eventData: Omit<MoldEvent, 'id' | 'timestamp' 
     }
     
     if (newStatus) {
-        const moldDoc = await getDoc(doc(moldsCol, eventData.sourceId));
+        const moldDocRef = doc(moldsCol, eventData.sourceId);
+        const machineDocRef = doc(machinesCol, eventData.sourceId);
+
+        const moldDoc = await getDoc(moldDocRef);
         if (moldDoc.exists()) {
-            await updateDoc(moldDoc.ref, { stato: newStatus });
+            await updateDoc(moldDocRef, { stato: newStatus });
         } else {
-            const machineDoc = await getDoc(doc(machinesCol, eventData.sourceId));
+            const machineDoc = await getDoc(machineDocRef);
             if (machineDoc.exists()) {
-                await updateDoc(machineDoc.ref, { stato: newStatus });
+                await updateDoc(machineDocRef, { stato: newStatus });
             }
         }
     }
@@ -479,13 +482,16 @@ export const updateEvent = async (id: string, updates: Partial<MoldEvent>): Prom
         ));
 
         if (otherOpenEvents.empty) {
-            const moldDoc = await getDoc(doc(moldsCol, updatedEvent.sourceId));
+            const moldDocRef = doc(moldsCol, updatedEvent.sourceId);
+            const machineDocRef = doc(machinesCol, updatedEvent.sourceId);
+            
+            const moldDoc = await getDoc(moldDocRef);
             if (moldDoc.exists()) {
-                await updateDoc(moldDoc.ref, { stato: 'Operativo' });
+                await updateDoc(moldDocRef, { stato: 'Operativo' });
             } else {
-                const machineDoc = await getDoc(doc(machinesCol, updatedEvent.sourceId));
+                const machineDoc = await getDoc(machineDocRef);
                 if (machineDoc.exists()) {
-                    await updateDoc(machineDoc.ref, { stato: 'Operativo' });
+                    await updateDoc(machineDocRef, { stato: 'Operativo' });
                 }
             }
         }
