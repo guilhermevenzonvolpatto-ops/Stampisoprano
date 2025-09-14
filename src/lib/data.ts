@@ -588,7 +588,6 @@ export async function getMoldSupplierDistribution(): Promise<MoldSupplierDistrib
 export async function getMaintenanceCostsOverTime(): Promise<{ month: string; totalCost: number }[]> {
   const q = query(
     eventsCol,
-    where('costo', '>', 0),
     where('type', 'in', ['Manutenzione', 'Riparazione']),
     orderBy('timestamp', 'asc')
   );
@@ -596,8 +595,10 @@ export async function getMaintenanceCostsOverTime(): Promise<{ month: string; to
   const events = snapshot.docs.map(docToEvent);
 
   const costsByMonth = events.reduce((acc, event) => {
-    const month = format(event.timestamp, 'yyyy-MM');
-    acc[month] = (acc[month] || 0) + (event.costo || 0);
+    if (event.costo && event.costo > 0) {
+      const month = format(event.timestamp, 'yyyy-MM');
+      acc[month] = (acc[month] || 0) + (event.costo || 0);
+    }
     return acc;
   }, {} as Record<string, number>);
 
