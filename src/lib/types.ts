@@ -94,14 +94,6 @@ export interface Component {
   attachments?: Attachment[];
 }
 
-export interface MaintenanceSchedule {
-  id: string;
-  description: string;
-  intervalDays: number;
-  lastPerformed?: string; 
-  nextDueDate?: string;
-}
-
 export interface Machine {
   id: string;
   codice: string;
@@ -111,7 +103,6 @@ export interface Machine {
   isDeleted: boolean;
   customFields?: Record<string, any>;
   attachments?: Attachment[];
-  maintenanceSchedules?: MaintenanceSchedule[];
 }
 
 export interface MoldEvent {
@@ -126,7 +117,6 @@ export interface MoldEvent {
   status: 'Aperto' | 'Chiuso';
   customFields?: Record<string, any>;
   attachments?: Attachment[];
-  programmedMaintenanceTaskId?: string;
 }
 
 export interface ProductionLog {

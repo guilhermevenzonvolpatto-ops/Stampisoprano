@@ -26,19 +26,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { updateMachine } from '@/lib/data';
 import { useRouter } from 'next/navigation';
-import type { Machine, MaintenanceSchedule } from '@/lib/types';
+import type { Machine } from '@/lib/types';
 import { PlusCircle, Trash2, Save } from 'lucide-react';
-import { v4 as uuidv4 } from 'uuid';
 
 const customFieldSchema = z.object({
   key: z.string().min(1, 'Field name is required.'),
   value: z.string().min(1, 'Field value is required.'),
-});
-
-const maintenanceScheduleSchema = z.object({
-    id: z.string(),
-    description: z.string().min(1, "Description is required."),
-    intervalDays: z.coerce.number().min(1, "Interval must be at least 1 day."),
 });
 
 const formSchema = z.object({
@@ -47,7 +40,6 @@ const formSchema = z.object({
   tipo: z.string().min(1, 'Type is required.'),
   stato: z.enum(['Operativo', 'In Manutenzione', 'Fermo']),
   customFields: z.array(customFieldSchema).optional(),
-  maintenanceSchedules: z.array(maintenanceScheduleSchema).optional(),
 });
 
 interface EditMachineFormProps {
@@ -67,18 +59,12 @@ export function EditMachineForm({ machine }: EditMachineFormProps) {
             tipo: machine.tipo,
             stato: machine.stato,
             customFields: Object.entries(machine.customFields || {}).map(([key, value]) => ({ key, value: String(value) })),
-            maintenanceSchedules: machine.maintenanceSchedules || [],
         },
     });
 
     const { fields: customFields, append: appendCustomField, remove: removeCustomField } = useFieldArray({
       control: form.control,
       name: "customFields",
-    });
-
-    const { fields: scheduleFields, append: appendSchedule, remove: removeSchedule } = useFieldArray({
-        control: form.control,
-        name: "maintenanceSchedules"
     });
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -89,18 +75,11 @@ export function EditMachineForm({ machine }: EditMachineFormProps) {
                 return acc;
             }, {} as Record<string, string>);
             
-            const existingSchedules = machine.maintenanceSchedules || [];
-            const updatedSchedules = values.maintenanceSchedules?.map(newSchedule => {
-                const existing = existingSchedules.find(s => s.id === newSchedule.id);
-                return existing ? { ...existing, ...newSchedule } : { ...newSchedule };
-            });
-
             const updateData: Partial<Machine> = {
               descrizione: values.descrizione,
               tipo: values.tipo,
               stato: values.stato,
               customFields: customFieldsObject,
-              maintenanceSchedules: updatedSchedules,
             };
 
             await updateMachine(machine.id, updateData);
@@ -197,52 +176,6 @@ export function EditMachineForm({ machine }: EditMachineFormProps) {
                     </CardContent>
                 </Card>
                 
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Programmed Maintenance</CardTitle>
-                        <CardDescription>Define recurring maintenance tasks for this machine.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {scheduleFields.map((field, index) => (
-                          <div key={field.id} className="flex items-end gap-2 p-3 border rounded-md">
-                              <FormField
-                                control={form.control}
-                                name={`maintenanceSchedules.${index}.description`}
-                                render={({ field }) => (
-                                    <FormItem className="flex-1">
-                                        <FormLabel className={index !== 0 ? "sr-only" : ""}>Task Description</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="e.g., Change hydraulic oil" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={form.control}
-                                name={`maintenanceSchedules.${index}.intervalDays`}
-                                render={({ field }) => (
-                                    <FormItem className="w-36">
-                                        <FormLabel className={index !== 0 ? "sr-only" : ""}>Interval (days)</FormLabel>
-                                        <FormControl>
-                                            <Input type="number" placeholder="e.g., 90" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                              />
-                              <Button type="button" variant="ghost" size="icon" onClick={() => removeSchedule(index)}>
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                          </div>
-                        ))}
-                        <Button type="button" variant="outline" size="sm" onClick={() => appendSchedule({ id: uuidv4(), description: '', intervalDays: 30 })}>
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Add Maintenance Task
-                        </Button>
-                    </CardContent>
-                </Card>
-
                  <Card>
                     <CardHeader>
                         <CardTitle>Custom Fields</CardTitle>

@@ -57,13 +57,11 @@ const eventSchema = z.object({
   estimatedEndDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date format" }),
   costo: z.string().optional(),
   customFields: z.array(customFieldSchema).optional(),
-  programmedMaintenanceTaskId: z.string().optional(),
 });
 
 export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventSheetProps) {
   const { toast } = useToast();
   const { user } = useApp();
-  const [machine, setMachine] = React.useState<Machine | null>(null);
 
   const form = useForm<z.infer<typeof eventSchema>>({
     resolver: zodResolver(eventSchema),
@@ -73,23 +71,8 @@ export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventS
       estimatedEndDate: new Date().toISOString().split('T')[0],
       costo: '',
       customFields: [],
-      programmedMaintenanceTaskId: '__none__',
     },
   });
-
-  const eventType = form.watch('type');
-
-  React.useEffect(() => {
-    async function fetchMachine() {
-      if (isOpen && sourceId.startsWith('MAC')) {
-        const machineData = await getMachine(sourceId);
-        setMachine(machineData);
-      } else {
-        setMachine(null);
-      }
-    }
-    fetchMachine();
-  }, [isOpen, sourceId]);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -112,7 +95,6 @@ export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventS
         estimatedEndDate: values.estimatedEndDate,
         costo: values.costo ? parseFloat(values.costo) : null,
         customFields: customFieldsObject,
-        programmedMaintenanceTaskId: values.programmedMaintenanceTaskId,
       };
 
       await createEvent(eventData);
@@ -141,7 +123,6 @@ export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventS
         estimatedEndDate: new Date().toISOString().split('T')[0],
         costo: '',
         customFields: [],
-        programmedMaintenanceTaskId: '__none__',
       });
     }
    }, [isOpen, form]);
@@ -182,32 +163,7 @@ export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventS
                 </FormItem>
               )}
             />
-            {eventType === 'Manutenzione' && machine && machine.maintenanceSchedules && machine.maintenanceSchedules.length > 0 && (
-                 <FormField
-                    control={form.control}
-                    name="programmedMaintenanceTaskId"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Programmed Maintenance Task (Optional)</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Link to a programmed task..." />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="__none__">None</SelectItem>
-                                    {machine.maintenanceSchedules?.map(task => (
-                                        <SelectItem key={task.id} value={task.id}>{task.description}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-            )}
-             <FormField
+            <FormField
               control={form.control}
               name="descrizione"
               render={({ field }) => (
