@@ -20,7 +20,6 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
   const { loginAs, t } = useApp();
-  const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
   const [code, setCode] = React.useState('');
@@ -32,10 +31,7 @@ export default function LoginPage() {
     setLoading(true);
     const success = await loginAs(code);
     
-    if (success) {
-      // The redirect is now handled by the AppProvider
-      // router.push('/dashboard'); 
-    } else {
+    if (!success) {
       toast({
         title: t('loginFailed'),
         description: t('invalidUserCode'),
@@ -43,6 +39,7 @@ export default function LoginPage() {
       });
       setCode('');
     }
+    // The redirect is handled by the AppProvider now
     setLoading(false);
   };
 
