@@ -28,7 +28,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Loader2, UploadCloud, FileText, Trash2, Image as ImageIcon, FileArchive } from 'lucide-react';
+import { Loader2, UploadCloud, FileText, Trash2, Image as ImageIcon, FileArchive, File as FileIcon } from 'lucide-react';
 import { useApp } from '@/context/app-context';
 import { uploadFileAndCreateAttachment, deleteAttachment } from '@/app/actions/attachments';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -44,7 +44,7 @@ const getFileIcon = (fileType: string) => {
     switch (fileType) {
         case 'PDF': return <FileText className="h-5 w-5 text-red-500" />;
         case 'Image': return <ImageIcon className="h-5 w-5 text-green-500" />;
-        case '3D': return <FileText className="h-5 w-5 text-blue-500" />;
+        case '3D': return <FileIcon className="h-5 w-5 text-blue-500" />;
         default: return <FileArchive className="h-5 w-5 text-gray-500" />;
     }
 }
@@ -161,7 +161,7 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
         <SheetHeader>
           <SheetTitle>{isClosed ? 'View Event' : 'Edit Event'}</SheetTitle>
           <SheetDescription>
-            {isClosed ? 'This event is closed. You can view its details and attachments.' : 'Update the details for this event or mark it as completed.'}
+            {isClosed ? 'This event is closed. You can view its details and manage attachments.' : 'Update the details for this event or mark it as completed.'}
           </SheetDescription>
         </SheetHeader>
         <ScrollArea className="flex-1 -mx-6 px-6">
