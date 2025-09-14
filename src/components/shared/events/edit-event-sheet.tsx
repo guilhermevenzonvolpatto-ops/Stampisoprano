@@ -263,3 +263,5 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
     </Sheet>
   );
 }
+
+    

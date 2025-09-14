@@ -404,6 +404,46 @@ export const updateUser = async (id: string, updates: Partial<User>): Promise<Us
     return getUser(id);
 }
 
+export const createEvent = async (eventData: Omit<MoldEvent, 'id' | 'timestamp' | 'status'>): Promise<MoldEvent> => {
+    const newEventData = {
+        ...eventData,
+        timestamp: serverTimestamp(),
+        status: 'Aperto' as 'Aperto',
+        attachments: [],
+    };
+    const docRef = await addDoc(eventsCol, newEventData);
+
+    const moldDoc = await getMold(eventData.sourceId);
+    if (moldDoc) {
+        let newStatus: Mold['stato'] | null = null;
+        if (eventData.type === 'Manutenzione' || eventData.type === 'Riparazione') {
+            newStatus = 'In Manutenzione';
+        } else if (eventData.type === 'Lavorazione') {
+            newStatus = 'Lavorazione';
+        }
+        if (newStatus) {
+            await updateMold(moldDoc.id, { stato: newStatus });
+        }
+    } else {
+        const machineDoc = await getMachine(eventData.sourceId);
+        if (machineDoc) {
+            await updateMachine(machineDoc.id, { stato: 'In Manutenzione' });
+        }
+    }
+
+    return {
+        id: docRef.id,
+        ...newEventData,
+        timestamp: new Date(), // Return a client-side date for immediate use
+    };
+};
+
+export const getEvent = async (id: string): Promise<MoldEvent | null> => {
+    const docRef = doc(db, 'events', id);
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists() ? docToEvent(docSnap) : null;
+}
+
 export const updateEvent = async (id: string, updates: Partial<MoldEvent>): Promise<MoldEvent | null> => {
     const eventRef = doc(db, 'events', id);
     await updateDoc(eventRef, updates);
@@ -414,7 +454,6 @@ export const updateEvent = async (id: string, updates: Partial<MoldEvent>): Prom
         const hasOpenEvents = otherEvents.some(e => e.id !== id && e.status === 'Aperto');
 
         if (!hasOpenEvents) {
-            // This is a shared function now, so we need to check if the source is a mold or a machine
             const moldDoc = await getMold(updatedEvent.sourceId);
             if (moldDoc) {
                 await updateMold(moldDoc.id, { stato: 'Operativo' });
@@ -428,49 +467,6 @@ export const updateEvent = async (id: string, updates: Partial<MoldEvent>): Prom
     }
     return updatedEvent;
 };
-
-export const getEvent = async (id: string): Promise<MoldEvent | null> => {
-    const docRef = doc(db, 'events', id);
-    const docSnap = await getDoc(docRef);
-    return docSnap.exists() ? docToEvent(docSnap) : null;
-}
-
-export const createEvent = async (eventData: Omit<MoldEvent, 'id' | 'timestamp' | 'status'>): Promise<MoldEvent> => {
-    const newEventData = {
-        ...eventData,
-        timestamp: serverTimestamp(),
-        status: 'Aperto',
-        attachments: [],
-    };
-    const docRef = await addDoc(eventsCol, newEventData);
-
-    // This is a shared function now, so we need to check if the source is a mold or a machine
-    const mold = await getMold(eventData.sourceId);
-    if (mold) {
-        let newStatus: Mold['stato'] | null = null;
-        if (eventData.type === 'Manutenzione' || eventData.type === 'Riparazione') {
-            newStatus = 'In Manutenzione';
-        } else if (eventData.type === 'Lavorazione') {
-            newStatus = 'Lavorazione';
-        }
-        if (newStatus) {
-            await updateMold(mold.id, { stato: newStatus });
-        }
-    } else {
-        const machine = await getMachine(eventData.sourceId);
-        if (machine) {
-             await updateMachine(machine.id, { stato: 'In Manutenzione' });
-        }
-    }
-
-    return {
-        id: docRef.id,
-        ...eventData,
-        attachments: [],
-        timestamp: new Date(),
-        status: 'Aperto'
-    };
-}
 
 export const getFileType = (fileName: string): Attachment['fileType'] => {
     const extension = fileName.split('.').pop()?.toLowerCase();
@@ -504,8 +500,5 @@ export async function associateComponentsToMold(moldId: string, componentIds: st
     return { success: false, error: "An error occurred while saving the association." };
   }
 }
-    
-
-    
 
     
