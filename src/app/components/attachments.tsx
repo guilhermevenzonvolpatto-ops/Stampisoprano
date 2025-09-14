@@ -13,8 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { UploadCloud, File, FileText, Image as ImageIcon, FileArchive, Trash2, Eye, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { uploadFileAndCreateAttachment, deleteAttachment } from '@/lib/data';
-import { useRouter } from 'next/navigation';
+import { uploadFileAndCreateAttachment, deleteAttachment } from '@/app/actions/attachments';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,7 +42,6 @@ const getFileIcon = (fileType: string) => {
 export function ComponentAttachments({ component }: ComponentAttachmentsProps) {
   const { user } = useApp();
   const { toast } = useToast();
-  const router = useRouter();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const contentRef = React.useRef<HTMLDivElement>(null);
   const [isUploading, setIsUploading] = React.useState(false);
@@ -61,8 +59,13 @@ export function ComponentAttachments({ component }: ComponentAttachmentsProps) {
       title: 'Upload Started',
       description: `Uploading "${file.name}"...`,
     });
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('itemId', component.id);
+    formData.append('itemType', 'component');
 
-    const result = await uploadFileAndCreateAttachment(component.id, 'component', file);
+    const result = await uploadFileAndCreateAttachment(formData);
 
     setIsUploading(false);
 
@@ -71,7 +74,6 @@ export function ComponentAttachments({ component }: ComponentAttachmentsProps) {
         title: 'Upload Successful',
         description: `"${file.name}" has been attached to the component.`,
       });
-      router.refresh();
     } else {
       toast({
         title: 'Upload Failed',
@@ -88,7 +90,6 @@ export function ComponentAttachments({ component }: ComponentAttachmentsProps) {
         title: 'Attachment Deleted',
         description: `"${attachment.fileName}" has been removed.`,
       });
-      router.refresh();
     } else {
       toast({
         title: 'Error Deleting File',

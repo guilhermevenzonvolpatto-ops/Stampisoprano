@@ -18,8 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useApp } from '@/context/app-context';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
-import { deleteMold, deleteComponent, deleteMachine } from '@/lib/data';
+import { deleteItem } from '@/app/actions/delete';
 
 interface DeleteButtonProps {
     itemId: string;
@@ -31,37 +30,19 @@ interface DeleteButtonProps {
 export function DeleteButton({ itemId, itemType, itemName, redirectPath }: DeleteButtonProps) {
     const { user, t } = useApp();
     const { toast } = useToast();
-    const router = useRouter();
 
     const handleDelete = async () => {
-        try {
-            let deleteAction;
-            switch(itemType) {
-                case 'mold':
-                    deleteAction = deleteMold;
-                    break;
-                case 'component':
-                    deleteAction = deleteComponent;
-                    break;
-                case 'machine':
-                    deleteAction = deleteMachine;
-                    break;
-                default:
-                    throw new Error("Invalid item type");
-            }
+        const result = await deleteItem(itemType, itemId);
 
-            await deleteAction(itemId);
-            
+        if (result.success) {
             toast({
                 title: `${itemType.charAt(0).toUpperCase() + itemType.slice(1)} Archived`,
                 description: `"${itemName}" has been successfully archived.`,
             });
-            router.push(redirectPath);
-            router.refresh();
-        } catch (error) {
+        } else {
             toast({
                 title: t('error'),
-                description: `Could not archive the ${itemType}.`,
+                description: result.error || `Could not archive the ${itemType}.`,
                 variant: 'destructive',
             });
         }

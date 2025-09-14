@@ -13,8 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { UploadCloud, File, FileText, Trash2, Image as ImageIcon, FileArchive, Eye, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { deleteAttachment, uploadFileAndCreateAttachment } from '@/lib/data';
-import { useRouter } from 'next/navigation';
+import { deleteAttachment, uploadFileAndCreateAttachment } from '@/app/actions/attachments';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,7 +42,6 @@ const getFileIcon = (fileType: string) => {
 export function MoldAttachments({ mold }: MoldAttachmentsProps) {
   const { user, t } = useApp();
   const { toast } = useToast();
-  const router = useRouter();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const contentRef = React.useRef<HTMLDivElement>(null);
   const [isUploading, setIsUploading] = React.useState(false);
@@ -62,7 +60,12 @@ export function MoldAttachments({ mold }: MoldAttachmentsProps) {
       description: `Uploading "${file.name}"...`,
     });
 
-    const result = await uploadFileAndCreateAttachment(mold.id, 'mold', file);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('itemId', mold.id);
+    formData.append('itemType', 'mold');
+
+    const result = await uploadFileAndCreateAttachment(formData);
 
     setIsUploading(false);
 
@@ -71,7 +74,6 @@ export function MoldAttachments({ mold }: MoldAttachmentsProps) {
             title: 'Upload Successful',
             description: `"${file.name}" has been attached to the mold.`,
         });
-        router.refresh();
     } else {
         toast({
             title: 'Upload Failed',
@@ -88,7 +90,6 @@ export function MoldAttachments({ mold }: MoldAttachmentsProps) {
         title: 'Attachment Deleted',
         description: `"${attachment.fileName}" has been removed.`,
       });
-      router.refresh();
     } else {
        toast({
         title: 'Error Deleting File',

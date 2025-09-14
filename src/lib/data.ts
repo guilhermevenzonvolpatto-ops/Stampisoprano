@@ -20,8 +20,7 @@ import {
   arrayRemove,
   writeBatch,
 } from 'firebase/firestore';
-import { put, del } from '@vercel/blob';
-import { db, app } from './firebase';
+import { db } from './firebase';
 import type { Mold, Component, MoldEvent, User, ProductionLog, StampingDataHistoryEntry, StampingData, Machine, Attachment } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -166,11 +165,6 @@ export const updateMold = async (id: string, updates: Partial<Mold>): Promise<Mo
     return getMold(id);
 };
 
-export const deleteMold = async (id: string): Promise<void> => {
-    const docRef = doc(db, 'molds', id);
-    await updateDoc(docRef, { isDeleted: true });
-}
-
 export const getComponents = async (): Promise<Component[]> => {
     const q = query(componentsCol, where('isDeleted', '==', false));
     const snapshot = await getDocs(q);
@@ -182,11 +176,6 @@ export const getComponent = async (id: string): Promise<Component | null> => {
     const docSnap = await getDoc(docRef);
     if (!docSnap.exists() || docSnap.data().isDeleted) return null;
     return docToComponent(docSnap);
-}
-
-export const deleteComponent = async (id: string): Promise<void> => {
-    const docRef = doc(db, 'components', id);
-    await updateDoc(docRef, { isDeleted: true });
 }
 
 export const getMachines = async (): Promise<Machine[]> => {
@@ -222,12 +211,6 @@ export const updateMachine = async (id: string, updates: Partial<Machine>): Prom
     await updateDoc(docRef, updates);
     return getMachine(id);
 }
-
-export const deleteMachine = async (id: string): Promise<void> => {
-    const docRef = doc(db, 'machines', id);
-    await updateDoc(docRef, { isDeleted: true });
-}
-
 
 export const updateComponent = async (id: string, updates: Partial<Component>): Promise<Component | null> => {
     const docRef = doc(db, 'components', id);
@@ -286,67 +269,6 @@ export const getStats = async () => {
     } catch(e) {
         console.error("Error getting stats:", e);
         return { totalMolds: 0, maintenanceMolds: 0, externalMolds: 0 };
-    }
-}
-
-export const getStatusDistribution = async () => {
-    try {
-        const snapshot = await getDocs(query(moldsCol, where('isDeleted', '==', false)));
-        const allMolds = snapshot.docs.map(docToMold);
-        const dist = allMolds.reduce((acc, mold) => {
-            acc[mold.stato] = (acc[mold.stato] || 0) + 1;
-            return acc;
-        }, {} as Record<string, number>);
-        return Object.entries(dist).map(([status, count]) => ({ status, count })) as any;
-    } catch(e) {
-        console.error("Error getting status distribution:", e);
-        return [];
-    }
-}
-
-export const getSupplierDistribution = async () => {
-    try {
-        const q = query(moldsCol, where('posizione.type', '==', 'esterna'));
-        const snapshot = await getDocs(q);
-        const externalMolds = snapshot.docs.map(docToMold).filter(m => !m.isDeleted);
-        const dist = externalMolds.reduce((acc, mold) => {
-            const supplier = mold.posizione.value || 'Unknown';
-            acc[supplier] = (acc[supplier] || 0) + 1;
-            return acc;
-        }, {} as Record<string, number>);
-        return Object.entries(dist).map(([supplier, count]) => ({ supplier, count }));
-    } catch(e) {
-        console.error("Error getting supplier distribution:", e);
-        return [];
-    }
-}
-
-export const getScrapRate = async (periodInDays: number) => {
-    try {
-        const allComponents = await getComponents();
-        const cutoffDate = new Date();
-        cutoffDate.setDate(cutoffDate.getDate() - periodInDays);
-
-        const logsQuery = query(productionLogsCol, where('timestamp', '>=', cutoffDate));
-        const logsSnapshot = await getDocs(logsQuery);
-        const allLogs = logsSnapshot.docs.map(docToProductionLog);
-
-        const rates = allComponents.map(c => {
-            const relevantLogs = allLogs.filter(log => log.componentId === c.id);
-            const totalGood = relevantLogs.reduce((sum, log) => sum + log.good, 0);
-            const totalScrapped = relevantLogs.reduce((sum, log) => sum + log.scrapped, 0);
-            const total = totalGood + totalScrapped;
-            return {
-                componentId: c.id,
-                componentCode: c.codice,
-                scrapRate: total > 0 ? parseFloat(((totalScrapped / total) * 100).toFixed(1)) : 0
-            };
-        });
-
-        return rates.filter(r => r.scrapRate > 0).sort((a,b) => b.scrapRate - a.scrapRate).slice(0, 10);
-    } catch(e) {
-        console.error("Error getting scrap rate:", e);
-        return [];
     }
 }
 
@@ -540,8 +462,7 @@ export const createEvent = async (eventData: Omit<MoldEvent, 'id' | 'timestamp' 
     };
 }
 
-
-const getFileType = (fileName: string): Attachment['fileType'] => {
+export const getFileType = (fileName: string): Attachment['fileType'] => {
     const extension = fileName.split('.').pop()?.toLowerCase();
     if (!extension) return 'Document';
     if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(extension)) return 'Image';
@@ -550,57 +471,6 @@ const getFileType = (fileName: string): Attachment['fileType'] => {
     return 'Document';
 }
 
-export async function uploadFileAndCreateAttachment(
-    itemId: string,
-    itemType: 'mold' | 'component' | 'machine',
-    file: File
-): Promise<{ success: boolean; error?: string }> {
-    try {
-        const pathname = `${itemType}s/${itemId}/${file.name}`;
-        const blob = await put(pathname, file, { access: 'public' });
-
-        const newAttachment: Attachment = {
-            id: uuidv4(),
-            fileName: file.name,
-            fileType: getFileType(file.name),
-            url: blob.url,
-            uploadedAt: new Date().toISOString(),
-            storagePath: blob.pathname // Vercel Blob uses pathname
-        };
-
-        const docRef = doc(db, `${itemType}s`, itemId);
-        await updateDoc(docRef, {
-            attachments: arrayUnion(newAttachment)
-        });
-
-        return { success: true };
-    } catch (error: any) {
-        console.error("Error uploading file to Vercel Blob:", error);
-        return { success: false, error: error.message };
-    }
-}
-
-
-export async function deleteAttachment(
-    itemId: string,
-    itemType: 'mold' | 'component' | 'machine',
-    attachment: Attachment
-): Promise<{ success: boolean; error?: string }> {
-     try {
-        // Use the full URL for deletion with Vercel Blob
-        await del(attachment.url);
-
-        const docRef = doc(db, `${itemType}s`, itemId);
-        await updateDoc(docRef, {
-            attachments: arrayRemove(attachment)
-        });
-
-        return { success: true };
-    } catch (error: any) {
-        console.error("Error deleting file from Vercel Blob:", error);
-        return { success: false, error: error.message };
-    }
-}
 
 export async function associateComponentsToMold(moldId: string, componentIds: string[]): Promise<{ success: boolean; error?: string }> {
   if (!componentIds || componentIds.length === 0) {
