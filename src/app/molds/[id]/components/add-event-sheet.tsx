@@ -33,10 +33,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { createEvent } from '@/lib/data';
+import { createEvent, getMachine } from '@/lib/data';
 import { PlusCircle, Trash2, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { MoldEvent } from '@/lib/types';
+import type { MoldEvent, Machine } from '@/lib/types';
 import { useApp } from '@/context/app-context';
 
 interface AddEventSheetProps {
@@ -57,11 +57,14 @@ const eventSchema = z.object({
   estimatedEndDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date format" }),
   costo: z.string().optional(),
   customFields: z.array(customFieldSchema).optional(),
+  programmedMaintenanceTaskId: z.string().optional(),
 });
 
 export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventSheetProps) {
   const { toast } = useToast();
   const { user } = useApp();
+  const [machine, setMachine] = React.useState<Machine | null>(null);
+
   const form = useForm<z.infer<typeof eventSchema>>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
@@ -70,8 +73,23 @@ export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventS
       estimatedEndDate: '',
       costo: '',
       customFields: [],
+      programmedMaintenanceTaskId: '__none__',
     },
   });
+
+  const eventType = form.watch('type');
+
+  React.useEffect(() => {
+    async function fetchMachine() {
+      if (isOpen && sourceId.startsWith('MAC')) {
+        const machineData = await getMachine(sourceId);
+        setMachine(machineData);
+      } else {
+        setMachine(null);
+      }
+    }
+    fetchMachine();
+  }, [isOpen, sourceId]);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -94,6 +112,7 @@ export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventS
         estimatedEndDate: values.estimatedEndDate,
         costo: values.costo ? parseFloat(values.costo) : null,
         customFields: customFieldsObject,
+        programmedMaintenanceTaskId: values.programmedMaintenanceTaskId === '__none__' ? undefined : values.programmedMaintenanceTaskId,
       };
 
       await createEvent(eventData);
@@ -113,6 +132,13 @@ export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventS
       });
     }
   };
+  
+   React.useEffect(() => {
+    if (isOpen) {
+      form.reset();
+    }
+   }, [isOpen, form]);
+
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -149,6 +175,31 @@ export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventS
                 </FormItem>
               )}
             />
+            {eventType === 'Manutenzione' && machine && machine.maintenanceSchedules && machine.maintenanceSchedules.length > 0 && (
+                 <FormField
+                    control={form.control}
+                    name="programmedMaintenanceTaskId"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Programmed Maintenance Task (Optional)</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Link to a programmed task..." />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="__none__">None</SelectItem>
+                                    {machine.maintenanceSchedules?.map(task => (
+                                        <SelectItem key={task.id} value={task.id}>{task.description}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            )}
              <FormField
               control={form.control}
               name="descrizione"

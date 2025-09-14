@@ -406,8 +406,48 @@ export const updateUser = async (id: string, updates: Partial<User>): Promise<Us
 }
 
 export const updateEvent = async (id: string, updates: Partial<MoldEvent>): Promise<MoldEvent | null> => {
-    const docRef = doc(db, 'events', id);
-    await updateDoc(docRef, updates);
+    const eventRef = doc(db, 'events', id);
+
+    await runTransaction(db, async (transaction) => {
+        const eventDoc = await transaction.get(eventRef);
+        if (!eventDoc.exists()) {
+            throw `Event ${id} not found!`;
+        }
+
+        transaction.update(eventRef, updates);
+        
+        // If an event is closed and it was a programmed maintenance, update the schedule
+        if (updates.status === 'Chiuso' && updates.actualEndDate) {
+            const eventData = { ...eventDoc.data(), ...updates } as MoldEvent;
+
+            if (eventData.programmedMaintenanceTaskId) {
+                const machineRef = doc(db, 'machines', eventData.sourceId);
+                const machineDoc = await transaction.get(machineRef);
+                
+                if (machineDoc.exists()) {
+                    const machine = docToMachine(machineDoc);
+                    const schedules = machine.maintenanceSchedules || [];
+                    const scheduleIndex = schedules.findIndex(s => s.id === eventData.programmedMaintenanceTaskId);
+
+                    if (scheduleIndex > -1) {
+                        const schedule = schedules[scheduleIndex];
+                        const newLastPerformed = updates.actualEndDate;
+                        const nextDueDate = new Date(newLastPerformed);
+                        nextDueDate.setDate(nextDueDate.getDate() + schedule.intervalDays);
+                        
+                        schedules[scheduleIndex] = {
+                            ...schedule,
+                            lastPerformed: newLastPerformed,
+                            nextDueDate: nextDueDate.toISOString().split('T')[0],
+                        };
+
+                        transaction.update(machineRef, { maintenanceSchedules: schedules });
+                    }
+                }
+            }
+        }
+    });
+
     const updatedEvent = await getEvent(id);
     if (updatedEvent && updates.status === 'Chiuso') {
         const source = (await getMold(updatedEvent.sourceId)) || (await getMachine(updatedEvent.sourceId));

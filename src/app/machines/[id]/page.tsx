@@ -6,18 +6,96 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, Pencil, Paperclip } from 'lucide-react';
+import { ChevronLeft, Pencil, Paperclip, CalendarCheck, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { RestrictedPage } from '@/components/layout/restricted-page';
 import { EditCustomFields } from '@/components/shared/edit-custom-fields';
-import type { Machine, Component } from '@/lib/types';
+import type { Machine, Component, MaintenanceSchedule } from '@/lib/types';
 import { AdminButton } from '@/components/layout/admin-button';
 import { DeleteButton } from '@/components/shared/delete-button';
 import Header from '@/components/layout/header';
 import { EventTimeline } from '@/app/molds/[id]/components/event-timeline';
 import { MachineAttachments } from '../components/machine-attachments';
+import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+
+const getStatusPill = (dueDate: string | undefined) => {
+    if (!dueDate) return { text: "Not Performed", className: "bg-gray-200 text-gray-800" };
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const nextDue = new Date(dueDate);
+    const diffTime = nextDue.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+        return { text: `Overdue by ${Math.abs(diffDays)} days`, className: "bg-red-100 text-red-800 animate-pulse" };
+    } else if (diffDays <= 7) {
+        return { text: `Due in ${diffDays} days`, className: "bg-yellow-100 text-yellow-800" };
+    } else {
+        return { text: "OK", className: "bg-green-100 text-green-800" };
+    }
+};
+
+
+function ProgrammedMaintenanceStatus({ schedules }: { schedules: MaintenanceSchedule[] }) {
+    if (!schedules || schedules.length === 0) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Programmed Maintenance</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-sm text-muted-foreground text-center py-4">No programmed maintenance tasks have been defined for this machine.</p>
+                </CardContent>
+            </Card>
+        );
+    }
+    
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Programmed Maintenance Status</CardTitle>
+                <CardDescription>Overview of recurring maintenance tasks and their due dates.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                {schedules.map(task => {
+                    const status = getStatusPill(task.nextDueDate);
+                    return (
+                        <div key={task.id} className="flex items-center justify-between p-3 border rounded-lg">
+                            <div>
+                                <p className="font-semibold">{task.description}</p>
+                                <div className="text-xs text-muted-foreground space-x-4">
+                                    <span>Last: {task.lastPerformed ? new Date(task.lastPerformed).toLocaleDateString() : 'N/A'}</span>
+                                    <span>Next: {task.nextDueDate ? new Date(task.nextDueDate).toLocaleDateString() : 'N/A'}</span>
+                                </div>
+                            </div>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <Badge className={cn("text-xs", status.className)}>{status.text}</Badge>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Interval: Every {task.intervalDays} days</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </div>
+                    );
+                })}
+            </CardContent>
+        </Card>
+    );
+}
 
 export default async function MachineDetailPage({
   params,
@@ -91,6 +169,7 @@ export default async function MachineDetailPage({
                   </div>
                 </CardContent>
               </Card>
+              <ProgrammedMaintenanceStatus schedules={machine.maintenanceSchedules || []} />
               <MachineAttachments machine={machine} />
             </div>
             <div className="lg:col-span-1">

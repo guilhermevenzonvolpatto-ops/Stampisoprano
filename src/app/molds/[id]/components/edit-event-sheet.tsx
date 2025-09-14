@@ -15,9 +15,9 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import type { Attachment, MoldEvent } from '@/lib/types';
+import type { Attachment, MoldEvent, Machine } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { updateEvent } from '@/lib/data';
+import { updateEvent, getMachine } from '@/lib/data';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -33,6 +33,7 @@ import { Loader2, UploadCloud, FileText, Trash2, Image as ImageIcon, FileArchive
 import { useApp } from '@/context/app-context';
 import { uploadFileAndCreateAttachment, deleteAttachment } from '@/app/actions/attachments';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface EditEventSheetProps {
   event: MoldEvent;
@@ -50,23 +51,30 @@ const getFileIcon = (fileType: string) => {
     }
 }
 
-
 export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSheetProps) {
   const { toast } = useToast();
   const { user } = useApp();
   const [description, setDescription] = React.useState(event.descrizione);
   const [cost, setCost] = React.useState(event.costo?.toString() || '');
   const [estimatedEndDate, setEstimatedEndDate] = React.useState(event.estimatedEndDate)
+  const [programmedMaintenanceTaskId, setProgrammedMaintenanceTaskId] = React.useState(event.programmedMaintenanceTaskId || '__none__');
   const [isSaving, setIsSaving] = React.useState(false);
   const [isUploading, setIsUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [machine, setMachine] = React.useState<Machine | null>(null);
 
-  
   React.useEffect(() => {
+    if (isOpen && event.sourceId.startsWith('MAC')) {
+        getMachine(event.sourceId).then(setMachine);
+    } else {
+        setMachine(null);
+    }
+
     setDescription(event.descrizione);
     setCost(event.costo?.toString() || '');
     setEstimatedEndDate(event.estimatedEndDate);
-  }, [event]);
+    setProgrammedMaintenanceTaskId(event.programmedMaintenanceTaskId || '__none__');
+  }, [event, isOpen]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -74,7 +82,8 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
       await updateEvent(event.id, {
         descrizione: description,
         costo: cost ? parseFloat(cost) : null,
-        estimatedEndDate: estimatedEndDate
+        estimatedEndDate: estimatedEndDate,
+        programmedMaintenanceTaskId: programmedMaintenanceTaskId === '__none__' ? undefined : programmedMaintenanceTaskId
       });
       toast({
         title: 'Event Updated',
@@ -99,6 +108,7 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
         await updateEvent(event.id, {
             status: 'Chiuso',
             actualEndDate: new Date().toISOString().split('T')[0],
+            programmedMaintenanceTaskId: programmedMaintenanceTaskId === '__none__' ? undefined : programmedMaintenanceTaskId
         });
         toast({
             title: 'Event Completed',
@@ -152,7 +162,6 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
     }
   };
 
-
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="sm:max-w-xl flex flex-col">
@@ -168,6 +177,24 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
               <Label htmlFor="event-type">Type</Label>
               <Input id="event-type" value={event.type} disabled />
             </div>
+
+            {event.type === 'Manutenzione' && machine && machine.maintenanceSchedules && machine.maintenanceSchedules.length > 0 && (
+                <div className="grid gap-2">
+                    <Label>Programmed Maintenance Task (Optional)</Label>
+                    <Select value={programmedMaintenanceTaskId} onValueChange={setProgrammedMaintenanceTaskId}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Link to a programmed task..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="__none__">None</SelectItem>
+                            {machine.maintenanceSchedules.map(task => (
+                                <SelectItem key={task.id} value={task.id}>{task.description}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+            )}
+
             <div className="grid gap-2">
               <Label htmlFor="event-description">Description</Label>
               <Textarea
@@ -241,7 +268,7 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
                   <AlertDialogHeader>
                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will mark the event as completed and it can no longer be edited.
+                      This will mark the event as completed and it can no longer be edited. If this is a programmed maintenance task, the next due date will be updated.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
