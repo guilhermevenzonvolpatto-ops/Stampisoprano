@@ -414,15 +414,14 @@ export const updateEvent = async (id: string, updates: Partial<MoldEvent>): Prom
         const hasOpenEvents = otherEvents.some(e => e.id !== id && e.status === 'Aperto');
 
         if (!hasOpenEvents) {
-            // Check if it's a machine first
-            const machine = await getMachine(updatedEvent.sourceId);
-            if (machine) {
-                await updateMachine(machine.id, { stato: 'Operativo' });
+            // This is a shared function now, so we need to check if the source is a mold or a machine
+            const moldDoc = await getMold(updatedEvent.sourceId);
+            if (moldDoc) {
+                await updateMold(moldDoc.id, { stato: 'Operativo' });
             } else {
-                // Otherwise, check if it's a mold
-                const mold = await getMold(updatedEvent.sourceId);
-                if (mold) {
-                    await updateMold(mold.id, { stato: 'Operativo' });
+                const machineDoc = await getMachine(updatedEvent.sourceId);
+                if (machineDoc) {
+                    await updateMachine(machineDoc.id, { stato: 'Operativo' });
                 }
             }
         }
@@ -445,21 +444,22 @@ export const createEvent = async (eventData: Omit<MoldEvent, 'id' | 'timestamp' 
     };
     const docRef = await addDoc(eventsCol, newEventData);
 
-    const machine = await getMachine(eventData.sourceId);
-    if (machine) {
-        await updateMachine(machine.id, { stato: 'In Manutenzione' });
+    // This is a shared function now, so we need to check if the source is a mold or a machine
+    const mold = await getMold(eventData.sourceId);
+    if (mold) {
+        let newStatus: Mold['stato'] | null = null;
+        if (eventData.type === 'Manutenzione' || eventData.type === 'Riparazione') {
+            newStatus = 'In Manutenzione';
+        } else if (eventData.type === 'Lavorazione') {
+            newStatus = 'Lavorazione';
+        }
+        if (newStatus) {
+            await updateMold(mold.id, { stato: newStatus });
+        }
     } else {
-        const mold = await getMold(eventData.sourceId);
-        if(mold) {
-            let newStatus: Mold['stato'] | null = null;
-            if (eventData.type === 'Manutenzione' || eventData.type === 'Riparazione') {
-                newStatus = 'In Manutenzione';
-            } else if (eventData.type === 'Lavorazione') {
-                newStatus = 'Lavorazione';
-            }
-            if (newStatus) {
-                await updateMold(mold.id, { stato: newStatus });
-            }
+        const machine = await getMachine(eventData.sourceId);
+        if (machine) {
+             await updateMachine(machine.id, { stato: 'In Manutenzione' });
         }
     }
 
