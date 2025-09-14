@@ -1,8 +1,7 @@
-
 'use client';
 
 import * as React from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -33,10 +32,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { createEvent, getMachine } from '@/lib/data';
-import { PlusCircle, Trash2, Loader2 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { MoldEvent, Machine } from '@/lib/types';
+import { createEvent } from '@/lib/data';
+import { Loader2 } from 'lucide-react';
+import type { MoldEvent } from '@/lib/types';
 import { useApp } from '@/context/app-context';
 
 interface AddEventSheetProps {
@@ -46,17 +44,11 @@ interface AddEventSheetProps {
   onUpdate: () => void;
 }
 
-const customFieldSchema = z.object({
-  key: z.string().min(1, 'Field name is required.'),
-  value: z.string().min(1, 'Field value is required.'),
-});
-
 const eventSchema = z.object({
   type: z.enum(['Manutenzione', 'Lavorazione', 'Riparazione', 'Costo', 'Altro']),
   descrizione: z.string().min(1, 'Description is required.'),
   estimatedEndDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date format" }),
   costo: z.string().optional(),
-  customFields: z.array(customFieldSchema).optional(),
 });
 
 export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventSheetProps) {
@@ -70,31 +62,20 @@ export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventS
       descrizione: '',
       estimatedEndDate: new Date().toISOString().split('T')[0],
       costo: '',
-      customFields: [],
     },
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: 'customFields',
   });
 
   const { isSubmitting } = form.formState;
 
   const handleSubmit = async (values: z.infer<typeof eventSchema>) => {
     try {
-      const customFieldsObject = values.customFields?.reduce((acc, { key, value }) => {
-        acc[key] = value;
-        return acc;
-      }, {} as Record<string, string>);
-
-      const eventData: Omit<MoldEvent, 'id' | 'timestamp' | 'status'> = {
+      
+      const eventData: Omit<MoldEvent, 'id' | 'timestamp' | 'status' | 'customFields' | 'attachments'> = {
         sourceId,
         type: values.type,
         descrizione: values.descrizione,
         estimatedEndDate: values.estimatedEndDate,
         costo: values.costo ? parseFloat(values.costo) : null,
-        customFields: customFieldsObject,
       };
 
       await createEvent(eventData);
@@ -122,7 +103,6 @@ export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventS
         descrizione: '',
         estimatedEndDate: new Date().toISOString().split('T')[0],
         costo: '',
-        customFields: [],
       });
     }
    }, [isOpen, form]);
@@ -204,61 +184,6 @@ export function AddEventSheet({ sourceId, isOpen, onClose, onUpdate }: AddEventS
                   )}
                 />
              )}
-
-            <Card className="pt-4">
-                <CardHeader className="p-0 px-6 pb-4">
-                    <CardTitle className="text-base">Custom Fields (Optional)</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 p-6 pt-0">
-                    {fields.map((field, index) => (
-                    <div key={field.id} className="flex items-end gap-2">
-                        <FormField
-                        control={form.control}
-                        name={`customFields.${index}.key`}
-                        render={({ field }) => (
-                            <FormItem className="flex-1">
-                            <FormLabel className={index !== 0 ? "sr-only" : ""}>Field Name</FormLabel>
-                            <FormControl>
-                                <Input placeholder="e.g., Operator" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                        <FormField
-                        control={form.control}
-                        name={`customFields.${index}.value`}
-                        render={({ field }) => (
-                            <FormItem className="flex-1">
-                            <FormLabel className={index !== 0 ? "sr-only" : ""}>Value</FormLabel>
-                            <FormControl>
-                                <Input placeholder="e.g., John Doe" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                        <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => remove(index)}
-                        >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                    </div>
-                    ))}
-                    <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => append({ key: '', value: '' })}
-                    >
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add Field
-                    </Button>
-                </CardContent>
-            </Card>
 
             <SheetFooter className="pt-4">
               <SheetClose asChild>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -15,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import type { Attachment, MoldEvent, Machine } from '@/lib/types';
+import type { Attachment, MoldEvent } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { updateEvent } from '@/lib/data';
 import {
@@ -61,9 +60,11 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
-    setDescription(event.descrizione);
-    setCost(event.costo?.toString() || '');
-    setEstimatedEndDate(event.estimatedEndDate);
+    if(isOpen) {
+      setDescription(event.descrizione);
+      setCost(event.costo?.toString() || '');
+      setEstimatedEndDate(event.estimatedEndDate);
+    }
   }, [event, isOpen]);
 
   const handleSave = async () => {

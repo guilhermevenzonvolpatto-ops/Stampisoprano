@@ -16,7 +16,7 @@ import type { Machine, Component } from '@/lib/types';
 import { AdminButton } from '@/components/layout/admin-button';
 import { DeleteButton } from '@/components/shared/delete-button';
 import Header from '@/components/layout/header';
-import { EventTimeline } from '@/app/molds/[id]/components/event-timeline';
+import { EventTimeline } from '@/components/shared/events/event-timeline';
 import { MachineAttachments } from '../components/machine-attachments';
 
 

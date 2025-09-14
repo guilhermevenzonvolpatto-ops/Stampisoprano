@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { getMold, getComponentsForMold, getEventsForSource } from '@/lib/data';
@@ -14,7 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, Pencil } from 'lucide-react';
 import Link from 'next/link';
-import { EventTimeline } from './components/event-timeline';
+import { EventTimeline } from '@/components/shared/events/event-timeline';
 import { AssociatedComponents } from './components/associated-components';
 import { RestrictedPage } from '@/components/layout/restricted-page';
 import { EditCustomFields } from '@/components/shared/edit-custom-fields';
