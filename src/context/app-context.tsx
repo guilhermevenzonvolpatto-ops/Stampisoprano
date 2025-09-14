@@ -2,8 +2,8 @@
 
 'use client';
 
-import { getUser } from '@/lib/data';
-import type { User } from '@/lib/types';
+import { getUser, getComponentsForMold } from '@/lib/data';
+import type { User, Component } from '@/lib/types';
 import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
 import en from '@/locales/en.json';
@@ -49,21 +49,40 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [router, pathname]);
 
-  React.useEffect(() => {
-    const storedLang = localStorage.getItem('language') as Locale | null;
-    if (storedLang && ['en', 'it'].includes(storedLang)) {
-      setLanguage(storedLang);
-      if (document.documentElement) {
-        document.documentElement.lang = storedLang;
+  const processUserPermissions = React.useCallback(async (baseUser: User): Promise<User> => {
+    if (baseUser.isAdmin || !baseUser.allowedCodes) {
+      return baseUser;
+    }
+  
+    const expandedCodes = new Set(baseUser.allowedCodes);
+  
+    const moldCodes = baseUser.allowedCodes.filter(code => code.startsWith('ST-'));
+  
+    for (const moldCode of moldCodes) {
+      try {
+        const components: Component[] = await getComponentsForMold(moldCode);
+        components.forEach(component => {
+          expandedCodes.add(component.codice);
+        });
+      } catch (error) {
+        console.error(`Error fetching components for mold ${moldCode}:`, error);
       }
     }
+  
+    return {
+      ...baseUser,
+      allowedCodes: Array.from(expandedCodes),
+    };
+  }, []);
 
+  React.useEffect(() => {
     const activeUserCode = sessionStorage.getItem('activeUser');
     if (activeUserCode) {
       getUser(activeUserCode)
-        .then((user) => {
-          if (user) {
-            setUser(user);
+        .then(async (baseUser) => {
+          if (baseUser) {
+            const processedUser = await processUserPermissions(baseUser);
+            setUser(processedUser);
           } else {
             logout();
           }
@@ -77,7 +96,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     } else {
       setIsLoading(false);
     }
-  }, [logout]);
+    
+    const storedLang = localStorage.getItem('language') as Locale | null;
+    if (storedLang && ['en', 'it'].includes(storedLang)) {
+      setLanguage(storedLang);
+      if (document.documentElement) {
+        document.documentElement.lang = storedLang;
+      }
+    }
+  }, [logout, processUserPermissions]);
   
   React.useEffect(() => {
       if (!isLoading) {
@@ -91,10 +118,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
 
   const loginAs = async (userCode: string) => {
-    const newUser = await getUser(userCode);
-    if (newUser) {
+    const baseUser = await getUser(userCode);
+    if (baseUser) {
+      const processedUser = await processUserPermissions(baseUser);
       sessionStorage.setItem('activeUser', userCode);
-      setUser(newUser);
+      setUser(processedUser);
       return true;
     }
     return false;
