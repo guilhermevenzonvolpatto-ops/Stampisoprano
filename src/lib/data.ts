@@ -397,17 +397,25 @@ export const getUsers = async (): Promise<User[]> => {
     return snapshot.docs.map(docToUser);
 }
 
-export const createUser = async (user: Omit<User, 'id'>, id: string): Promise<User | { error: string }> => {
-    if (!id) {
-        return { error: 'User ID is required.'};
+export const createUser = async (id: string, name: string): Promise<User | { error: string }> => {
+    if (!id || !name) {
+        return { error: 'User ID and Name are required.'};
     }
     const docRef = doc(db, 'users', id);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
         return { error: 'User with this code already exists.' };
     }
-    await setDoc(docRef, user);
-    return { id, ...user };
+    
+    const newUser: User = {
+        id,
+        name,
+        isAdmin: false,
+        allowedCodes: [],
+    };
+
+    await setDoc(docRef, newUser);
+    return newUser;
 };
 
 export const updateUser = async (id: string, updates: Partial<User>): Promise<User | null> => {
@@ -439,7 +447,13 @@ export const createEvent = async (eventData: Omit<MoldEvent, 'id' | 'timestamp' 
     } else {
         const machineDoc = await getMachine(eventData.sourceId);
         if (machineDoc) {
-            await updateMachine(machineDoc.id, { stato: 'In Manutenzione' });
+             let newStatus: Machine['stato'] | null = null;
+            if (eventData.type === 'Manutenzione' || eventData.type === 'Riparazione') {
+                newStatus = 'In Manutenzione';
+            }
+            if (newStatus) {
+                await updateMachine(machineDoc.id, { stato: newStatus });
+            }
         }
     }
 
