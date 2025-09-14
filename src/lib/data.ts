@@ -21,7 +21,7 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Mold, Component, MoldEvent, User, ProductionLog, StampingDataHistoryEntry, StampingData, Machine, Attachment } from './types';
+import type { Mold, Component, MoldEvent, User, ProductionLog, StampingDataHistoryEntry, StampingData, Machine, Attachment, MaintenanceRequest } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
 
@@ -32,6 +32,7 @@ const eventsCol = collection(db, 'events');
 const productionLogsCol = collection(db, 'productionLogs');
 const stampingHistoryCol = collection(db, 'stampingHistory');
 const machinesCol = collection(db, 'machines');
+const maintenanceRequestsCol = collection(db, 'maintenanceRequests');
 
 
 const docToUser = (doc: any): User => {
@@ -433,27 +434,20 @@ export const createEvent = async (eventData: Omit<MoldEvent, 'id' | 'timestamp' 
     };
     const docRef = await addDoc(eventsCol, newEventData);
 
-    const moldDoc = await getMold(eventData.sourceId);
-    if (moldDoc) {
-        let newStatus: Mold['stato'] | null = null;
-        if (eventData.type === 'Manutenzione' || eventData.type === 'Riparazione') {
-            newStatus = 'In Manutenzione';
-        } else if (eventData.type === 'Lavorazione') {
-            newStatus = 'Lavorazione';
-        }
-        if (newStatus) {
-            await updateMold(moldDoc.id, { stato: newStatus });
-        }
-    } else {
-        const machineDoc = await getMachine(eventData.sourceId);
-        if (machineDoc) {
-             let newStatus: Machine['stato'] | null = null;
-            if (eventData.type === 'Manutenzione' || eventData.type === 'Riparazione') {
-                newStatus = 'In Manutenzione';
-            }
-            if (newStatus) {
-                await updateMachine(machineDoc.id, { stato: newStatus });
-            }
+    const sourceIsMold = eventData.sourceId.startsWith('ST-');
+    let newStatus: Mold['stato'] | Machine['stato'] | null = null;
+    
+    if (eventData.type === 'Manutenzione' || eventData.type === 'Riparazione') {
+        newStatus = 'In Manutenzione';
+    } else if (eventData.type === 'Lavorazione') {
+        newStatus = 'Lavorazione';
+    }
+
+    if (newStatus) {
+        if (sourceIsMold) {
+             await updateMold(eventData.sourceId, { stato: newStatus as Mold['stato'] });
+        } else {
+             await updateMachine(eventData.sourceId, { stato: newStatus as Machine['stato'] });
         }
     }
 
@@ -476,18 +470,18 @@ export const updateEvent = async (id: string, updates: Partial<MoldEvent>): Prom
 
     const updatedEvent = await getEvent(id);
     if (updatedEvent && updates.status === 'Chiuso') {
-        const otherEvents = await getEventsForSource(updatedEvent.sourceId);
-        const hasOpenEvents = otherEvents.some(e => e.id !== id && e.status === 'Aperto');
+        const otherOpenEvents = await getDocs(query(
+            eventsCol, 
+            where('sourceId', '==', updatedEvent.sourceId), 
+            where('status', '==', 'Aperto')
+        ));
 
-        if (!hasOpenEvents) {
-            const moldDoc = await getMold(updatedEvent.sourceId);
-            if (moldDoc) {
-                await updateMold(moldDoc.id, { stato: 'Operativo' });
+        if (otherOpenEvents.empty) {
+            const sourceIsMold = updatedEvent.sourceId.startsWith('ST-');
+            if (sourceIsMold) {
+                await updateMold(updatedEvent.sourceId, { stato: 'Operativo' });
             } else {
-                const machineDoc = await getMachine(updatedEvent.sourceId);
-                if (machineDoc) {
-                    await updateMachine(machineDoc.id, { stato: 'Operativo' });
-                }
+                await updateMachine(updatedEvent.sourceId, { stato: 'Operativo' });
             }
         }
     }
@@ -527,4 +521,20 @@ export async function associateComponentsToMold(moldId: string, componentIds: st
   }
 }
 
+export async function createMaintenanceRequest(
+  data: Omit<MaintenanceRequest, 'id' | 'createdAt' | 'status'>
+): Promise<MaintenanceRequest | { error: string }> {
+  try {
+    const newRequest: Omit<MaintenanceRequest, 'id'> = {
+      ...data,
+      status: 'pending',
+      createdAt: serverTimestamp(),
+    };
+    const docRef = await addDoc(maintenanceRequestsCol, newRequest);
+    return { id: docRef.id, ...newRequest, createdAt: new Date() } as MaintenanceRequest;
+  } catch (error: any) {
+    console.error("Error creating maintenance request:", error);
+    return { error: "Failed to create maintenance request." };
+  }
+}
     

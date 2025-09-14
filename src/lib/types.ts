@@ -1,4 +1,5 @@
 
+
 export interface User {
   id: string;
   name: string;
@@ -117,6 +118,18 @@ export interface MoldEvent {
   status: 'Aperto' | 'Chiuso';
   customFields?: Record<string, any>;
   attachments?: Attachment[];
+}
+
+export interface MaintenanceRequest {
+  id: string;
+  sourceId: string; // Mold or Machine ID
+  sourceCodice: string;
+  sourceType: 'mold' | 'machine';
+  description: string;
+  requesterId: string;
+  requesterName: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: any; // Firestore ServerTimestamp
 }
 
 export interface ProductionLog {
