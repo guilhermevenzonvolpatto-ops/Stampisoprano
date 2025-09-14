@@ -477,7 +477,7 @@ export const createEvent = async (eventData: Omit<MoldEvent, 'id' | 'timestamp' 
         timestamp: serverTimestamp(),
         status: 'Aperto',
         attachments: [],
-        programmedMaintenanceTaskId: eventData.programmedMaintenanceTaskId,
+        programmedMaintenanceTaskId: eventData.programmedMaintenanceTaskId === '__none__' ? undefined : eventData.programmedMaintenanceTaskId,
     };
     const docRef = await addDoc(eventsCol, newEventData);
 
@@ -537,6 +537,8 @@ export async function associateComponentsToMold(moldId: string, componentIds: st
     return { success: false, error: "An error occurred while saving the association." };
   }
 }
+    
+
     
 
     
