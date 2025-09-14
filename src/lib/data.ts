@@ -477,6 +477,7 @@ export const createEvent = async (eventData: Omit<MoldEvent, 'id' | 'timestamp' 
         timestamp: serverTimestamp(),
         status: 'Aperto',
         attachments: [],
+        programmedMaintenanceTaskId: eventData.programmedMaintenanceTaskId,
     };
     const docRef = await addDoc(eventsCol, newEventData);
 
