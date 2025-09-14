@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, ChevronRight } from 'lucide-react';
+import { CheckCircle, XCircle, ChevronRight, ShieldCheck } from 'lucide-react';
 import { RestrictedPage } from '@/components/layout/restricted-page';
 import Link from 'next/link';
 
@@ -31,7 +31,7 @@ export default async function ManageUsersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>User Code (ID)</TableHead>
+                  <TableHead>User Identifier</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead><span className="sr-only">Actions</span></TableHead>
@@ -40,7 +40,16 @@ export default async function ManageUsersPage() {
               <TableBody>
                 {users.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell className="font-mono">{user.id}</TableCell>
+                    <TableCell>
+                      {user.isAdmin ? (
+                        <div className="flex items-center text-muted-foreground text-sm">
+                           <ShieldCheck className="h-4 w-4 mr-2 text-primary" />
+                           <span>Administrator</span>
+                        </div>
+                      ) : (
+                        <span className="font-mono">{user.id}</span>
+                      )}
+                    </TableCell>
                     <TableCell>{user.name}</TableCell>
                     <TableCell>
                       <Badge variant={user.isAdmin ? 'default' : 'secondary'}>
