@@ -68,10 +68,8 @@ export function EventTimeline({ sourceId }: EventTimelineProps) {
   }
 
   const handleEventClick = (event: MoldEvent) => {
-    if (event.status !== 'Chiuso') {
-      const freshEvent = events.find(e => e.id === event.id);
-      setSelectedEvent(freshEvent || event);
-    }
+    const freshEvent = events.find(e => e.id === event.id);
+    setSelectedEvent(freshEvent || event);
   }
 
   return (
@@ -96,10 +94,7 @@ export function EventTimeline({ sourceId }: EventTimelineProps) {
                 return (
                 <div
                   key={event.id}
-                  className={cn(
-                    "flex gap-4 p-2 rounded-md",
-                    !isClosed && "cursor-pointer hover:bg-muted"
-                  )}
+                  className="flex gap-4 p-2 rounded-md cursor-pointer hover:bg-muted"
                   onClick={() => handleEventClick(event)}
                 >
                   <div className="relative flex-shrink-0 pt-1">
@@ -172,5 +167,3 @@ export function EventTimeline({ sourceId }: EventTimelineProps) {
     </>
   );
 }
-
-    

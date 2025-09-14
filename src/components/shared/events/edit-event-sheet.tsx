@@ -59,6 +59,8 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
   const [isUploading, setIsUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
+  const isClosed = event.status === 'Chiuso';
+
   React.useEffect(() => {
     if(isOpen) {
       setDescription(event.descrizione);
@@ -68,6 +70,7 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
   }, [event, isOpen]);
 
   const handleSave = async () => {
+    if (isClosed) return;
     setIsSaving(true);
     try {
       await updateEvent(event.id, {
@@ -93,6 +96,7 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
   };
 
   const handleMarkAsDone = async () => {
+    if (isClosed) return;
     setIsSaving(true);
     try {
         await updateEvent(event.id, {
@@ -155,9 +159,9 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="sm:max-w-xl flex flex-col">
         <SheetHeader>
-          <SheetTitle>Edit Event</SheetTitle>
+          <SheetTitle>{isClosed ? 'View Event' : 'Edit Event'}</SheetTitle>
           <SheetDescription>
-            Update the details for this event or mark it as completed.
+            {isClosed ? 'This event is closed. You can view its details and attachments.' : 'Update the details for this event or mark it as completed.'}
           </SheetDescription>
         </SheetHeader>
         <ScrollArea className="flex-1 -mx-6 px-6">
@@ -173,6 +177,7 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
+                disabled={isClosed}
               />
             </div>
             <div className="grid gap-2">
@@ -182,6 +187,7 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
                       type="date"
                       value={estimatedEndDate}
                       onChange={(e) => setEstimatedEndDate(e.target.value)}
+                      disabled={isClosed}
                   />
               </div>
             {user?.isAdmin && (
@@ -193,6 +199,7 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
                   value={cost}
                   onChange={(e) => setCost(e.target.value)}
                   placeholder="Enter cost if applicable"
+                  disabled={isClosed}
                   />
               </div>
             )}
@@ -229,39 +236,43 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
             </div>
           </div>
         </ScrollArea>
-        <SheetFooter className="gap-2 sm:flex sm:flex-col pt-4 border-t">
-          <div className="sm:flex sm:justify-between w-full">
-            <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="outline" disabled={isSaving}>Mark as Done</Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will mark the event as completed and it can no longer be edited.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleMarkAsDone}>Continue</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-              <div className="flex gap-2 mt-2 sm:mt-0">
-                  <SheetClose asChild>
-                      <Button variant="ghost">Cancel</Button>
-                  </SheetClose>
-                  <Button onClick={handleSave} disabled={isSaving}>
-                      {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      {isSaving ? 'Saving...' : 'Save Changes'}
-                  </Button>
-              </div>
-          </div>
+        <SheetFooter className="gap-2 sm:flex-col pt-4 border-t">
+          {isClosed ? (
+             <SheetClose asChild>
+                <Button variant="outline">Close</Button>
+            </SheetClose>
+          ) : (
+            <div className="sm:flex sm:justify-between w-full">
+              <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" disabled={isSaving}>Mark as Done</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will mark the event as completed and it can no longer be edited.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleMarkAsDone}>Continue</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+                <div className="flex gap-2 mt-2 sm:mt-0">
+                    <SheetClose asChild>
+                        <Button variant="ghost">Cancel</Button>
+                    </SheetClose>
+                    <Button onClick={handleSave} disabled={isSaving}>
+                        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isSaving ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                </div>
+            </div>
+          )}
         </SheetFooter>
       </SheetContent>
     </Sheet>
   );
 }
-
-    
