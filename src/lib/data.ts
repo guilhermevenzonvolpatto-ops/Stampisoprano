@@ -21,8 +21,9 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Mold, Component, MoldEvent, User, ProductionLog, StampingDataHistoryEntry, StampingData, Machine, Attachment, MaintenanceRequest } from './types';
+import type { Mold, Component, MoldEvent, User, ProductionLog, StampingDataHistoryEntry, StampingData, Machine, Attachment, MaintenanceRequest, MoldStatusDistribution, MoldSupplierDistribution, ComponentScrapRate } from './types';
 import { v4 as uuidv4 } from 'uuid';
+import { format } from 'date-fns';
 
 
 const usersCol = collection(db, 'users');
@@ -408,15 +409,14 @@ export const createUser = async (id: string, name: string): Promise<User | { err
         return { error: 'User with this code already exists.' };
     }
     
-    const newUser: User = {
-        id,
+    const newUser: Omit<User, 'id'> = {
         name,
         isAdmin: false,
         allowedCodes: [],
     };
 
     await setDoc(docRef, newUser);
-    return newUser;
+    return { id, ...newUser};
 };
 
 export const updateUser = async (id: string, updates: Partial<User>): Promise<User | null> => {
@@ -442,16 +442,17 @@ export const createEvent = async (eventData: Omit<MoldEvent, 'id' | 'timestamp' 
     }
     
     if (newStatus) {
-        const moldDocRef = doc(moldsCol, eventData.sourceId);
-        const machineDocRef = doc(machinesCol, eventData.sourceId);
+        let itemRef: any;
+        if (eventData.sourceId.startsWith('ST-')) {
+            itemRef = doc(moldsCol, eventData.sourceId);
+        } else if (eventData.sourceId.startsWith('MAC-')) {
+            itemRef = doc(machinesCol, eventData.sourceId);
+        }
 
-        const moldDoc = await getDoc(moldDocRef);
-        if (moldDoc.exists()) {
-            await updateDoc(moldDocRef, { stato: newStatus });
-        } else {
-            const machineDoc = await getDoc(machineDocRef);
-            if (machineDoc.exists()) {
-                await updateDoc(machineDocRef, { stato: newStatus });
+        if(itemRef) {
+            const itemDoc = await getDoc(itemRef);
+            if (itemDoc.exists()) {
+                await updateDoc(itemRef, { stato: newStatus });
             }
         }
     }
@@ -482,16 +483,17 @@ export const updateEvent = async (id: string, updates: Partial<MoldEvent>): Prom
         ));
 
         if (otherOpenEvents.empty) {
-            const moldDocRef = doc(moldsCol, updatedEvent.sourceId);
-            const machineDocRef = doc(machinesCol, updatedEvent.sourceId);
-            
-            const moldDoc = await getDoc(moldDocRef);
-            if (moldDoc.exists()) {
-                await updateDoc(moldDocRef, { stato: 'Operativo' });
-            } else {
-                const machineDoc = await getDoc(machineDocRef);
-                if (machineDoc.exists()) {
-                    await updateDoc(machineDocRef, { stato: 'Operativo' });
+            let itemRef: any;
+             if (updatedEvent.sourceId.startsWith('ST-')) {
+                itemRef = doc(moldsCol, updatedEvent.sourceId);
+            } else if (updatedEvent.sourceId.startsWith('MAC-')) {
+                itemRef = doc(machinesCol, updatedEvent.sourceId);
+            }
+
+            if(itemRef) {
+                const itemDoc = await getDoc(itemRef);
+                if (itemDoc.exists()) {
+                    await updateDoc(itemRef, { stato: 'Operativo' });
                 }
             }
         }
@@ -548,4 +550,59 @@ export async function createMaintenanceRequest(
     return { error: "Failed to create maintenance request." };
   }
 }
-    
+
+// Analytics Functions
+export async function getMoldStatusDistribution(): Promise<MoldStatusDistribution> {
+  const q = query(moldsCol, where('isDeleted', '==', false));
+  const snapshot = await getDocs(q);
+  const molds = snapshot.docs.map(docToMold);
+
+  const statusCounts = molds.reduce((acc, mold) => {
+    acc[mold.stato] = (acc[mold.stato] || 0) + 1;
+    return acc;
+  }, {} as Record<Mold['stato'], number>);
+
+  return Object.entries(statusCounts).map(([status, count]) => ({
+    status: status as Mold['stato'],
+    count,
+  }));
+}
+
+export async function getMoldSupplierDistribution(): Promise<MoldSupplierDistribution> {
+  const q = query(moldsCol, where('isDeleted', '==', false), where('posizione.type', '==', 'esterna'));
+  const snapshot = await getDocs(q);
+  const molds = snapshot.docs.map(docToMold);
+
+  const supplierCounts = molds.reduce((acc, mold) => {
+    const supplier = mold.posizione.value;
+    acc[supplier] = (acc[supplier] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  return Object.entries(supplierCounts).map(([supplier, count]) => ({
+    supplier,
+    count,
+  }));
+}
+
+export async function getMaintenanceCostsOverTime(): Promise<{ month: string; totalCost: number }[]> {
+  const q = query(
+    eventsCol,
+    where('costo', '>', 0),
+    where('type', 'in', ['Manutenzione', 'Riparazione']),
+    orderBy('timestamp', 'asc')
+  );
+  const snapshot = await getDocs(q);
+  const events = snapshot.docs.map(docToEvent);
+
+  const costsByMonth = events.reduce((acc, event) => {
+    const month = format(event.timestamp, 'yyyy-MM');
+    acc[month] = (acc[month] || 0) + (event.costo || 0);
+    return acc;
+  }, {} as Record<string, number>);
+
+  return Object.entries(costsByMonth).map(([month, totalCost]) => ({
+    month,
+    totalCost,
+  }));
+}
