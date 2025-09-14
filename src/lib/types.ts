@@ -102,6 +102,7 @@ export interface Machine {
   stato: 'Operativo' | 'In Manutenzione' | 'Fermo';
   isDeleted: boolean;
   customFields?: Record<string, any>;
+  attachments?: Attachment[];
 }
 
 export interface MoldEvent {
@@ -115,6 +116,7 @@ export interface MoldEvent {
   actualEndDate?: string;
   status: 'Aperto' | 'Chiuso';
   customFields?: Record<string, any>;
+  attachments?: Attachment[];
 }
 
 export interface ProductionLog {

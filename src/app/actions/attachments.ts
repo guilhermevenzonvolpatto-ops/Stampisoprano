@@ -9,19 +9,24 @@ import { getFileType } from '@/lib/data';
 import type { Attachment } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 
+type ItemType = 'mold' | 'component' | 'machine' | 'event';
+
 export async function uploadFileAndCreateAttachment(
     formData: FormData,
 ): Promise<{ success: boolean; error?: string }> {
     const file = formData.get('file') as File;
     const itemId = formData.get('itemId') as string;
-    const itemType = formData.get('itemType') as 'mold' | 'component' | 'machine';
+    const itemType = formData.get('itemType') as ItemType;
 
     if (!file || !itemId || !itemType) {
         return { success: false, error: 'Missing file, item ID, or item type.' };
     }
+    
+    const collectionName = itemType === 'event' ? 'events' : `${itemType}s`;
+
 
     try {
-        const pathname = `${itemType}s/${itemId}/${file.name}`;
+        const pathname = `${collectionName}/${itemId}/${file.name}`;
         const blob = await put(pathname, file, { 
             access: 'public',
             token: process.env.BLOB_READ_WRITE_TOKEN
@@ -36,12 +41,12 @@ export async function uploadFileAndCreateAttachment(
             storagePath: blob.pathname
         };
 
-        const docRef = doc(db, `${itemType}s`, itemId);
+        const docRef = doc(db, collectionName, itemId);
         await updateDoc(docRef, {
             attachments: arrayUnion(newAttachment)
         });
 
-        revalidatePath(`/${itemType}s/${itemId}`);
+        revalidatePath(`/${collectionName}/${itemId}`);
         return { success: true };
     } catch (error: any) {
         console.error("Error uploading file:", error);
@@ -52,20 +57,23 @@ export async function uploadFileAndCreateAttachment(
 
 export async function deleteAttachment(
     itemId: string,
-    itemType: 'mold' | 'component' | 'machine',
+    itemType: ItemType,
     attachment: Attachment
 ): Promise<{ success: boolean; error?: string }> {
+    const collectionName = itemType === 'event' ? 'events' : `${itemType}s`;
      try {
-        await del(attachment.url, {
-             token: process.env.BLOB_READ_WRITE_TOKEN
-        });
+        if (attachment.url) {
+            await del(attachment.url, {
+                token: process.env.BLOB_READ_WRITE_TOKEN
+            });
+        }
 
-        const docRef = doc(db, `${itemType}s`, itemId);
+        const docRef = doc(db, collectionName, itemId);
         await updateDoc(docRef, {
             attachments: arrayRemove(attachment)
         });
 
-        revalidatePath(`/${itemType}s/${itemId}`);
+        revalidatePath(`/${collectionName}/${itemId}`);
         return { success: true };
     } catch (error: any) {
         console.error("Error deleting file from Vercel Blob:", error);

@@ -436,6 +436,7 @@ export const createEvent = async (eventData: Omit<MoldEvent, 'id' | 'timestamp' 
         ...eventData,
         timestamp: serverTimestamp(),
         status: 'Aperto',
+        attachments: [],
     };
     const docRef = await addDoc(eventsCol, newEventData);
 
@@ -457,6 +458,7 @@ export const createEvent = async (eventData: Omit<MoldEvent, 'id' | 'timestamp' 
     return {
         id: docRef.id,
         ...eventData,
+        attachments: [],
         timestamp: new Date(),
         status: 'Aperto'
     };

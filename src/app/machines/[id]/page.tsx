@@ -8,15 +8,16 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, Pencil } from 'lucide-react';
+import { ChevronLeft, Pencil, Paperclip } from 'lucide-react';
 import Link from 'next/link';
 import { RestrictedPage } from '@/components/layout/restricted-page';
 import { EditCustomFields } from '@/components/shared/edit-custom-fields';
-import type { Machine } from '@/lib/types';
+import type { Machine, Component } from '@/lib/types';
 import { AdminButton } from '@/components/layout/admin-button';
 import { DeleteButton } from '@/components/shared/delete-button';
 import Header from '@/components/layout/header';
 import { EventTimeline } from '@/app/molds/[id]/components/event-timeline';
+import { MachineAttachments } from '../components/machine-attachments';
 
 export default async function MachineDetailPage({
   params,
@@ -78,7 +79,7 @@ export default async function MachineDetailPage({
 
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-6">
-               <EditCustomFields item={machine} itemType="machine" />
+               <EditCustomFields item={machine as Machine | Component} itemType="machine" />
               <Card>
                 <CardHeader>
                   <CardTitle>Details</CardTitle>
@@ -90,6 +91,7 @@ export default async function MachineDetailPage({
                   </div>
                 </CardContent>
               </Card>
+              <MachineAttachments machine={machine} />
             </div>
             <div className="lg:col-span-1">
               <EventTimeline sourceId={machine.id} />

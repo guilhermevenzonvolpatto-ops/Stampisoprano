@@ -7,7 +7,7 @@ import type { MoldEvent } from '@/lib/types';
 import { getEventsForSource } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Wrench, HardHat, CircleDollarSign, Info, CheckCircle2, PlusCircle, Settings } from 'lucide-react';
+import { Wrench, HardHat, CircleDollarSign, Info, CheckCircle2, PlusCircle, Settings, Paperclip } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Tooltip,
@@ -43,23 +43,36 @@ export function EventTimeline({ sourceId }: EventTimelineProps) {
   const [isAddSheetOpen, setIsAddSheetOpen] = React.useState(false);
   const { user, t } = useApp();
 
-  const fetchEvents = React.useCallback(() => {
-    getEventsForSource(sourceId).then(setEvents);
-  }, [sourceId]);
+  const fetchEvents = React.useCallback(async () => {
+    const freshEvents = await getEventsForSource(sourceId);
+    setEvents(freshEvents);
+
+    // If an event is being edited, update its data in the state
+    if (selectedEvent) {
+      const updatedSelectedEvent = freshEvents.find(e => e.id === selectedEvent.id);
+      setSelectedEvent(updatedSelectedEvent || null);
+    }
+  }, [sourceId, selectedEvent]);
+
 
   React.useEffect(() => {
     fetchEvents();
-  }, [fetchEvents]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sourceId]);
 
   const handleEventUpdate = () => {
     fetchEvents();
-    setSelectedEvent(null);
-    setIsAddSheetOpen(false);
+  }
+
+  const closeSheets = () => {
+      setSelectedEvent(null);
+      setIsAddSheetOpen(false);
   }
 
   const handleEventClick = (event: MoldEvent) => {
     if (event.status !== 'Chiuso') {
-      setSelectedEvent(event);
+      const freshEvent = events.find(e => e.id === event.id);
+      setSelectedEvent(freshEvent || event);
     }
   }
 
@@ -80,6 +93,7 @@ export function EventTimeline({ sourceId }: EventTimelineProps) {
                 const eventStyle = getEventTypeStyle(event.type);
                 const Icon = eventStyle.icon;
                 const isClosed = event.status === 'Chiuso';
+                const hasAttachments = event.attachments && event.attachments.length > 0;
 
                 return (
                 <div
@@ -117,10 +131,22 @@ export function EventTimeline({ sourceId }: EventTimelineProps) {
                           {event.status}
                         </Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(event.timestamp).toLocaleDateString()}
+                      <div className="text-xs text-muted-foreground mt-1 flex items-center gap-x-2">
+                        <span>{new Date(event.timestamp).toLocaleDateString()}</span>
                         {isClosed && event.actualEndDate && ` - Completed: ${new Date(event.actualEndDate).toLocaleDateString()}`}
-                      </p>
+                        {hasAttachments && (
+                          <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                     <Paperclip className="h-3 w-3" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{event.attachments?.length} attachment(s)</p>
+                                </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
                       {user?.isAdmin && event.costo != null && <p className="text-xs text-muted-foreground">Cost: ${event.costo.toFixed(2)}</p>}
                   </div>
                 </div>
@@ -135,14 +161,14 @@ export function EventTimeline({ sourceId }: EventTimelineProps) {
         <EditEventSheet
           event={selectedEvent}
           isOpen={!!selectedEvent}
-          onClose={() => setSelectedEvent(null)}
+          onClose={closeSheets}
           onUpdate={handleEventUpdate}
         />
       )}
        <AddEventSheet
           sourceId={sourceId}
           isOpen={isAddSheetOpen}
-          onClose={() => setIsAddSheetOpen(false)}
+          onClose={closeSheets}
           onUpdate={handleEventUpdate}
         />
     </>
