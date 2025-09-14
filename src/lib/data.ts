@@ -1,4 +1,5 @@
 
+
 import {
   collection,
   doc,
@@ -279,6 +280,17 @@ export const getUpcomingEvents = async (): Promise<MoldEvent[]> => {
         return events;
     } catch(e) {
         console.error("Error getting upcoming events:", e);
+        return [];
+    }
+}
+
+export const getAllEvents = async (): Promise<MoldEvent[]> => {
+    try {
+        const q = query(eventsCol, orderBy('timestamp', 'desc'));
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(docToEvent);
+    } catch(e) {
+        console.error("Error getting all events:", e);
         return [];
     }
 }

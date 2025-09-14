@@ -5,7 +5,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Package, LayoutDashboard, Component as ComponentIcon, Users, HardHat } from 'lucide-react';
+import { Package, LayoutDashboard, Component as ComponentIcon, Users, HardHat, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/context/app-context';
 
@@ -18,6 +18,7 @@ export function MainNav() {
     { href: '/molds', label: t('molds'), icon: Package },
     { href: '/components', label: t('components'), icon: ComponentIcon },
     { href: '/machines', label: t('machines'), icon: HardHat, admin: true },
+    { href: '/calendar', label: 'Calendar', icon: Calendar, admin: true },
     { href: '/users/manage', label: t('users'), icon: Users, admin: true },
   ];
 
