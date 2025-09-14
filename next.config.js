@@ -1,7 +1,14 @@
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
-  // No longer using static export
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.public.blob.vercel-storage.com',
+      },
+    ],
+  },
 };
 
 module.exports = nextConfig;
