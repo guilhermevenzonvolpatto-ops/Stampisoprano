@@ -1,5 +1,4 @@
 
-
 import {
   collection,
   doc,
@@ -411,21 +410,20 @@ export const updateEvent = async (id: string, updates: Partial<MoldEvent>): Prom
 
     const updatedEvent = await getEvent(id);
     if (updatedEvent && updates.status === 'Chiuso') {
-        const machine = await getMachine(updatedEvent.sourceId);
-        if (machine) {
-            const otherEvents = await getEventsForSource(updatedEvent.sourceId);
-            const hasOpenEvents = otherEvents.some(e => e.id !== id && e.status === 'Aperto');
-            if (!hasOpenEvents) {
+        const otherEvents = await getEventsForSource(updatedEvent.sourceId);
+        const hasOpenEvents = otherEvents.some(e => e.id !== id && e.status === 'Aperto');
+
+        if (!hasOpenEvents) {
+            // Check if it's a machine first
+            const machine = await getMachine(updatedEvent.sourceId);
+            if (machine) {
                 await updateMachine(machine.id, { stato: 'Operativo' });
-            }
-        } else {
-            const mold = await getMold(updatedEvent.sourceId);
-            if (mold) {
-                 const otherEvents = await getEventsForSource(updatedEvent.sourceId);
-                 const hasOpenEvents = otherEvents.some(e => e.id !== id && e.status === 'Aperto');
-                 if (!hasOpenEvents) {
+            } else {
+                // Otherwise, check if it's a mold
+                const mold = await getMold(updatedEvent.sourceId);
+                if (mold) {
                     await updateMold(mold.id, { stato: 'Operativo' });
-                 }
+                }
             }
         }
     }
