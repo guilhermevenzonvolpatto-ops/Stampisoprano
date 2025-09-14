@@ -20,7 +20,7 @@ import {
   arrayRemove,
   writeBatch,
 } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { put, del } from '@vercel/blob';
 import { db, app } from './firebase';
 import type { Mold, Component, MoldEvent, User, ProductionLog, StampingDataHistoryEntry, StampingData, Machine, Attachment } from './types';
 import { v4 as uuidv4 } from 'uuid';
@@ -33,7 +33,6 @@ const eventsCol = collection(db, 'events');
 const productionLogsCol = collection(db, 'productionLogs');
 const stampingHistoryCol = collection(db, 'stampingHistory');
 const machinesCol = collection(db, 'machines');
-const storage = getStorage(app);
 
 
 const docToUser = (doc: any): User => {
@@ -557,19 +556,16 @@ export async function uploadFileAndCreateAttachment(
     file: File
 ): Promise<{ success: boolean; error?: string }> {
     try {
-        const storagePath = `${itemType}s/${itemId}/${file.name}`;
-        const storageRef = ref(storage, storagePath);
-
-        const snapshot = await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(snapshot.ref);
+        const pathname = `${itemType}s/${itemId}/${file.name}`;
+        const blob = await put(pathname, file, { access: 'public' });
 
         const newAttachment: Attachment = {
             id: uuidv4(),
             fileName: file.name,
             fileType: getFileType(file.name),
-            url: downloadURL,
+            url: blob.url,
             uploadedAt: new Date().toISOString(),
-            storagePath: storagePath
+            storagePath: blob.pathname // Vercel Blob uses pathname
         };
 
         const docRef = doc(db, `${itemType}s`, itemId);
@@ -579,7 +575,7 @@ export async function uploadFileAndCreateAttachment(
 
         return { success: true };
     } catch (error: any) {
-        console.error("Error uploading file:", error);
+        console.error("Error uploading file to Vercel Blob:", error);
         return { success: false, error: error.message };
     }
 }
@@ -591,10 +587,8 @@ export async function deleteAttachment(
     attachment: Attachment
 ): Promise<{ success: boolean; error?: string }> {
      try {
-        if (attachment.storagePath) {
-            const storageRef = ref(storage, attachment.storagePath);
-            await deleteObject(storageRef);
-        }
+        // Use the full URL for deletion with Vercel Blob
+        await del(attachment.url);
 
         const docRef = doc(db, `${itemType}s`, itemId);
         await updateDoc(docRef, {
@@ -603,7 +597,7 @@ export async function deleteAttachment(
 
         return { success: true };
     } catch (error: any) {
-        console.error("Error deleting file:", error);
+        console.error("Error deleting file from Vercel Blob:", error);
         return { success: false, error: error.message };
     }
 }
