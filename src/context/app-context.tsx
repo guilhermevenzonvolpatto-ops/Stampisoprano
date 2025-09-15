@@ -55,30 +55,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
 
     const allMolds = await getMolds();
+    const allComponents = await getComponents();
     const allMachines = await getMachines();
-
-    const allowedMolds = allMolds.filter(m => baseUser.allowedCodes.includes(m.codice));
-    const allowedMachines = allMachines.filter(m => baseUser.allowedCodes.includes(m.codice));
 
     const expandedCodes = new Set(baseUser.allowedCodes);
 
-    // For each allowed mold, get its components and add their codes
+    // 1. Find all molds the user has DIRECT access to
+    const allowedMolds = allMolds.filter(mold => baseUser.allowedCodes.includes(mold.codice));
+
+    // 2. For each allowed mold, add its associated components and machine to the allowed list
     for (const mold of allowedMolds) {
-      try {
-        const components: Component[] = await getComponentsForMold(mold.id);
-        components.forEach(component => {
-          expandedCodes.add(component.codice);
-        });
-      } catch (error) {
-        console.error(`Error fetching components for mold ${mold.codice}:`, error);
+      // Add associated machine
+      if (mold.macchinaAssociata) {
+        expandedCodes.add(mold.macchinaAssociata);
       }
-    }
-    
-    // For each allowed mold, if it has a machine associated, add the machine code
-    for (const mold of allowedMolds) {
-        if (mold.macchinaAssociata) {
-            expandedCodes.add(mold.macchinaAssociata);
-        }
+      
+      // Find components produced by this mold and add them
+      const componentsForMold = allComponents.filter(c => c.associatedMolds?.includes(mold.id));
+      for (const component of componentsForMold) {
+        expandedCodes.add(component.codice);
+      }
     }
 
     return {
