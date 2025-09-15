@@ -696,8 +696,7 @@ export async function getComponentScrapRates(): Promise<ComponentScrapRate[]> {
 export async function getEventScheduleAdherence(): Promise<{ eventType: string; averageDelay: number }[]> {
     const q = query(
         eventsCol,
-        where('status', '==', 'Chiuso'),
-        where('actualEndDate', '!=', null)
+        where('status', '==', 'Chiuso')
     );
     const snapshot = await getDocs(q);
     const events = snapshot.docs.map(docToEvent);
