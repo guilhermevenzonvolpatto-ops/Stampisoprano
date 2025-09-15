@@ -52,6 +52,12 @@ Questa sezione, visibile agli amministratori, è per la gestione dei macchinari 
 - **Vista Elenco**: Una tabella ricercabile e filtrabile di tutte le macchine.
 - **Vista Dettaglio**: Mostra i dettagli della macchina (tipo, numero di serie, costo) e il suo storico completo degli eventi (manutenzione, riparazioni).
 
+### Calendario
+La sezione Calendario (visibile solo agli amministratori) offre una visione d'insieme di tutti gli eventi programmati per l'intero parco asset (stampi e macchine).
+- **Vista Mensile**: Una vista mensile tradizionale in cui i giorni con eventi programmati sono contrassegnati da un indicatore visivo.
+- **Dettagli Evento su Click**: Cliccando su un giorno specifico, un pop-up mostrerà un elenco dettagliato di tutti gli eventi la cui data di fine prevista corrisponde a quel giorno.
+- **Accesso Rapido**: Dall'elenco nel pop-up, è possibile cliccare su un singolo evento per aprire una barra laterale che permette di visualizzarne o modificarne i dettagli, esattamente come dalla pagina di dettaglio dell'asset.
+
 ## 3. Flussi di Lavoro e Funzionalità
 
 ### Gestione Eventi
