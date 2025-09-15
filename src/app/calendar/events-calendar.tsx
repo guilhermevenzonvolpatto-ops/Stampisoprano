@@ -73,16 +73,21 @@ export function EventsCalendar({ initialEvents }: EventsCalendarProps) {
       setSelectedEvent(null);
   }
 
-  const DayWithEvents = ({ date, ...props }: { date: Date } & any) => {
+  const DayWithEvents = ({ date, displayMonth }: { date: Date, displayMonth: Date }) => {
     const dateString = date.toISOString().split('T')[0];
     const dayEvents = eventsByDate.get(dateString);
+    const isOutsideMonth = date.getMonth() !== displayMonth.getMonth();
+
+    if (isOutsideMonth) {
+      return <div className="h-full w-full"></div>
+    }
 
     if (dayEvents && dayEvents.length > 0) {
       return (
         <Popover>
           <PopoverTrigger asChild>
-            <div className="relative flex h-full w-full items-center justify-center">
-              {props.children}
+            <div className="relative flex h-full w-full cursor-pointer items-center justify-center p-1 font-normal hover:bg-accent/50 rounded-md">
+              {date.getDate()}
               <div className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-primary" />
             </div>
           </PopoverTrigger>
@@ -134,7 +139,7 @@ export function EventsCalendar({ initialEvents }: EventsCalendarProps) {
         </Popover>
       );
     }
-    return <div className="h-full w-full flex items-center justify-center">{props.children}</div>;
+    return <div className="h-full w-full flex items-center justify-center p-1 font-normal">{date.getDate()}</div>;
   };
 
   return (
@@ -142,17 +147,19 @@ export function EventsCalendar({ initialEvents }: EventsCalendarProps) {
       <Card>
         <CardContent className="p-2 md:p-4">
           <Calendar
-            mode="single"
-            className="p-0 [&_td]:w-full"
+            className="p-0 [&_tr]:w-full"
             classNames={{
                 month: 'space-y-4 w-full',
                 table: 'w-full border-collapse',
+                head_row: 'flex',
+                head_cell: 'text-muted-foreground rounded-md w-full font-normal text-[0.8rem]',
                 row: 'flex w-full mt-2',
-                cell: 'flex-1 text-center text-sm p-0 relative focus-within:relative focus-within:z-20',
-                day: 'h-16 w-full p-1 font-normal',
+                cell: 'flex-1 h-24 text-center text-sm p-0 relative focus-within:relative focus-within:z-20',
+                day: 'h-full w-full',
+                day_outside: 'text-muted-foreground opacity-50',
             }}
             components={{
-              DayContent: (props) => <DayWithEvents {...props}>{props.date.getDate()}</DayWithEvents>
+              Day: DayWithEvents
             }}
           />
         </CardContent>
