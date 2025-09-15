@@ -2,15 +2,20 @@
 
 import { RestrictedPage } from '@/components/layout/restricted-page';
 import Header from '@/components/layout/header';
-import { getMoldStatusDistribution, getMoldSupplierDistribution, getMaintenanceCostsOverTime } from '@/lib/data';
+import { getMoldStatusDistribution, getMoldSupplierDistribution, getMaintenanceCostsOverTime, getComponentScrapRates, getEventScheduleAdherence } from '@/lib/data';
 import { MoldStatusChart } from './components/mold-status-chart';
 import { MoldsBySupplierChart } from './components/molds-by-supplier-chart';
 import { MaintenanceCostsChart } from './components/maintenance-costs-chart';
+import { ComponentScrapRateChart } from './components/component-scrap-rate-chart';
+import { EventScheduleAdherenceChart } from './components/event-schedule-adherence-chart';
 
 export default async function AnalyticsPage() {
   const moldStatusData = await getMoldStatusDistribution();
   const moldSupplierData = await getMoldSupplierDistribution();
   const maintenanceCostsData = await getMaintenanceCostsOverTime();
+  const scrapRateData = await getComponentScrapRates();
+  const scheduleAdherenceData = await getEventScheduleAdherence();
+
 
   return (
     <RestrictedPage adminOnly>
@@ -25,6 +30,8 @@ export default async function AnalyticsPage() {
             <div className="grid gap-6 lg:grid-cols-2">
               <MoldStatusChart data={moldStatusData} />
               <MoldsBySupplierChart data={moldSupplierData} />
+              <ComponentScrapRateChart data={scrapRateData} />
+              <EventScheduleAdherenceChart data={scheduleAdherenceData} />
             </div>
             <div className="mt-6">
               <MaintenanceCostsChart data={maintenanceCostsData} />

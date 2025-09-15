@@ -24,7 +24,7 @@ import {
 import { db } from './firebase';
 import type { Mold, Component, MoldEvent, User, ProductionLog, StampingDataHistoryEntry, StampingData, Machine, Attachment, MaintenanceRequest, MoldStatusDistribution, MoldSupplierDistribution, ComponentScrapRate } from './types';
 import { v4 as uuidv4 } from 'uuid';
-import { format } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 
 
 const usersCol = collection(db, 'users');
@@ -659,4 +659,63 @@ export async function getMaintenanceCostsOverTime(): Promise<{ month: string; to
     month,
     totalCost,
   }));
+}
+
+export async function getComponentScrapRates(): Promise<ComponentScrapRate[]> {
+    const logsSnapshot = await getDocs(productionLogsCol);
+    const componentsSnapshot = await getDocs(query(componentsCol, where('isDeleted', '==', false)));
+    
+    const componentCodes = new Map(componentsSnapshot.docs.map(doc => [doc.id, doc.data().codice]));
+
+    const totalsByComponent = logsSnapshot.docs.reduce((acc, doc) => {
+        const log = doc.data() as ProductionLog;
+        if (!acc[log.componentId]) {
+            acc[log.componentId] = { good: 0, scrapped: 0 };
+        }
+        acc[log.componentId].good += log.good || 0;
+        acc[log.componentId].scrapped += log.scrapped || 0;
+        return acc;
+    }, {} as Record<string, { good: number; scrapped: number }>);
+
+    const scrapRates: ComponentScrapRate[] = [];
+    for (const componentId in totalsByComponent) {
+        const { good, scrapped } = totalsByComponent[componentId];
+        const total = good + scrapped;
+        if (total > 0 && componentCodes.has(componentId)) {
+            scrapRates.push({
+                componentId,
+                componentCode: componentCodes.get(componentId)!,
+                scrapRate: (scrapped / total) * 100,
+            });
+        }
+    }
+    return scrapRates.sort((a, b) => b.scrapRate - a.scrapRate);
+}
+
+
+export async function getEventScheduleAdherence(): Promise<{ eventType: string; averageDelay: number }[]> {
+    const q = query(
+        eventsCol,
+        where('status', '==', 'Chiuso'),
+        where('actualEndDate', '!=', null)
+    );
+    const snapshot = await getDocs(q);
+    const events = snapshot.docs.map(docToEvent);
+
+    const adherenceData = events.reduce((acc, event) => {
+        if (event.actualEndDate && event.estimatedEndDate) {
+            const delay = differenceInDays(new Date(event.actualEndDate), new Date(event.estimatedEndDate));
+            if (!acc[event.type]) {
+                acc[event.type] = { totalDelay: 0, count: 0 };
+            }
+            acc[event.type].totalDelay += delay;
+            acc[event.type].count++;
+        }
+        return acc;
+    }, {} as Record<string, { totalDelay: number; count: number }>);
+    
+    return Object.entries(adherenceData).map(([eventType, data]) => ({
+        eventType,
+        averageDelay: data.totalDelay / data.count,
+    }));
 }
