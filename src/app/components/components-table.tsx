@@ -12,12 +12,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Component } from '@/lib/types';
-import { PlusCircle, Upload, Download } from 'lucide-react';
+import { PlusCircle, Upload, Download, Check, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/context/app-context';
 import { AdminButton } from '@/components/layout/admin-button';
 import { DeleteButton } from '@/components/shared/delete-button';
 import { ImportComponentsDialog } from './import-components-dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 interface ComponentsTableProps {
   data: Component[];
@@ -25,6 +27,8 @@ interface ComponentsTableProps {
 
 export function ComponentsTable({ data }: ComponentsTableProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [aestheticFilter, setAestheticFilter] = React.useState('all');
+  const [foodContactFilter, setFoodContactFilter] = React.useState('all');
   const [isImporting, setIsImporting] = React.useState(false);
   const { user, t } = useApp();
 
@@ -47,15 +51,27 @@ export function ComponentsTable({ data }: ComponentsTableProps) {
       components = data.filter(c => user.allowedCodes.includes(c.codice));
     }
     
-    if (!searchTerm) return components;
+    if (searchTerm) {
+      components = components.filter(
+        (c) =>
+          c.codice.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          c.descrizione.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          c.materiale.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    if (aestheticFilter !== 'all') {
+      const isAesthetic = aestheticFilter === 'yes';
+      components = components.filter(c => !!c.isAesthetic === isAesthetic);
+    }
 
-    return components.filter(
-      (c) =>
-        c.codice.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.descrizione.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.materiale.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [data, searchTerm, user]);
+    if (foodContactFilter !== 'all') {
+      const isFoodContact = foodContactFilter === 'yes';
+      components = components.filter(c => !!c.isFoodContact === isFoodContact);
+    }
+
+    return components;
+  }, [data, searchTerm, user, aestheticFilter, foodContactFilter]);
 
   const downloadCSV = () => {
     const headers = ['codice', 'descrizione', 'materiale', 'peso', 'stato', 'cicliTotali', 'associatedMolds', 'isAesthetic', 'isFoodContact'];
@@ -90,14 +106,34 @@ export function ComponentsTable({ data }: ComponentsTableProps) {
   return (
     <>
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Input
               placeholder={t('searchComponents')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-80"
+              className="w-full sm:w-64"
             />
+            <Select value={aestheticFilter} onValueChange={setAestheticFilter}>
+                <SelectTrigger className="w-full sm:w-auto">
+                    <SelectValue placeholder="Aesthetic" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Aesthetic</SelectItem>
+                    <SelectItem value="yes">Aesthetic</SelectItem>
+                    <SelectItem value="no">Not Aesthetic</SelectItem>
+                </SelectContent>
+            </Select>
+            <Select value={foodContactFilter} onValueChange={setFoodContactFilter}>
+                <SelectTrigger className="w-full sm:w-auto">
+                    <SelectValue placeholder="Food Contact" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Food Contact</SelectItem>
+                    <SelectItem value="yes">Food Contact</SelectItem>
+                    <SelectItem value="no">Not Food Contact</SelectItem>
+                </SelectContent>
+            </Select>
           </div>
           <div className="flex items-center gap-2">
             {user?.isAdmin && (
@@ -125,6 +161,8 @@ export function ComponentsTable({ data }: ComponentsTableProps) {
                 <TableHead>{t('code')}</TableHead>
                 <TableHead>{t('description')}</TableHead>
                 <TableHead>{t('material')}</TableHead>
+                <TableHead className="text-center">Aesthetic</TableHead>
+                <TableHead className="text-center">Food Contact</TableHead>
                 <TableHead>{t('totalCycles')}</TableHead>
                 <TableHead>{t('status')}</TableHead>
                 <TableHead>
@@ -138,6 +176,12 @@ export function ComponentsTable({ data }: ComponentsTableProps) {
                   <TableCell className="font-medium">{c.codice}</TableCell>
                   <TableCell>{c.descrizione}</TableCell>
                   <TableCell>{c.materiale}</TableCell>
+                   <TableCell className="text-center">
+                    {c.isAesthetic ? <Check className="h-5 w-5 text-green-600 mx-auto" /> : <X className="h-5 w-5 text-destructive mx-auto" />}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {c.isFoodContact ? <Check className="h-5 w-5 text-green-600 mx-auto" /> : <X className="h-5 w-5 text-destructive mx-auto" />}
+                  </TableCell>
                   <TableCell>{(c.cicliTotali || 0).toLocaleString()}</TableCell>
                   <TableCell>
                     <Badge variant="secondary" className={getStatusClass(c.stato)}>
