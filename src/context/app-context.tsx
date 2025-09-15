@@ -2,7 +2,7 @@
 
 'use client';
 
-import { getUser, getComponentsForMold, getMolds, getMachines } from '@/lib/data';
+import { getUser, getComponentsForMold, getMolds, getMachines, getComponents } from '@/lib/data';
 import type { User, Component, Mold, Machine } from '@/lib/types';
 import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
@@ -53,30 +53,60 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (baseUser.isAdmin || !baseUser.allowedCodes) {
       return baseUser;
     }
-
+  
     const allMolds = await getMolds();
     const allComponents = await getComponents();
-    const allMachines = await getMachines();
-
+  
     const expandedCodes = new Set(baseUser.allowedCodes);
-
-    // 1. Find all molds the user has DIRECT access to
-    const allowedMolds = allMolds.filter(mold => baseUser.allowedCodes.includes(mold.codice));
-
-    // 2. For each allowed mold, add its associated components and machine to the allowed list
-    for (const mold of allowedMolds) {
-      // Add associated machine
-      if (mold.macchinaAssociata) {
-        expandedCodes.add(mold.macchinaAssociata);
+  
+    // Create maps for efficient lookups
+    const componentMap = new Map(allComponents.map(c => [c.id, c]));
+    const moldMap = new Map(allMolds.map(m => [m.id, m]));
+  
+    // First pass: add direct associations
+    for (const code of baseUser.allowedCodes) {
+      // If code is for a mold
+      const mold = allMolds.find(m => m.codice === code);
+      if (mold) {
+        if (mold.macchinaAssociata) expandedCodes.add(mold.macchinaAssociata);
+        const componentsForMold = allComponents.filter(c => c.associatedMolds?.includes(mold.id));
+        componentsForMold.forEach(c => expandedCodes.add(c.codice));
       }
-      
-      // Find components produced by this mold and add them
-      const componentsForMold = allComponents.filter(c => c.associatedMolds?.includes(mold.id));
-      for (const component of componentsForMold) {
-        expandedCodes.add(component.codice);
+  
+      // If code is for a component
+      const component = allComponents.find(c => c.codice === code);
+      if (component && component.associatedMolds) {
+        component.associatedMolds.forEach(moldId => {
+          const associatedMold = moldMap.get(moldId);
+          if (associatedMold) {
+            expandedCodes.add(associatedMold.codice);
+            if (associatedMold.macchinaAssociata) {
+              expandedCodes.add(associatedMold.macchinaAssociata);
+            }
+          }
+        });
       }
     }
-
+  
+    // Second pass: handle nested associations (mold -> component -> other molds)
+    // This ensures that if you have access to one mold, you get its components,
+    // and if those components are used in OTHER molds, you get access to those too.
+    const currentCodes = Array.from(expandedCodes);
+    for (const code of currentCodes) {
+      const component = allComponents.find(c => c.codice === code);
+      if (component && component.associatedMolds) {
+        component.associatedMolds.forEach(moldId => {
+          const associatedMold = moldMap.get(moldId);
+          if (associatedMold) {
+            expandedCodes.add(associatedMold.codice);
+             if (associatedMold.macchinaAssociata) {
+              expandedCodes.add(associatedMold.macchinaAssociata);
+            }
+          }
+        });
+      }
+    }
+  
     return {
       ...baseUser,
       allowedCodes: Array.from(expandedCodes),
