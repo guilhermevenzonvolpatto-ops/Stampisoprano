@@ -44,41 +44,39 @@ export default function LoginPage() {
   };
 
   return (
-    <>
+    <div className="flex flex-col h-screen">
       <Header />
-      <main className="flex-1">
-        <div className="flex min-h-[calc(100vh-10rem)] items-center justify-center bg-background">
-          <Card className="w-full max-w-sm">
-            <CardHeader className="text-center">
-              <CardTitle>{t('welcome')}</CardTitle>
-              <CardDescription>{t('enterUserCode')}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="user-code">{t('userCode')}</Label>
-                  <Input
-                    id="user-code"
-                    placeholder="e.g., guilhermevolp93"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={loading || !code}
-                >
-                  {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
-                  {loading ? t('loggingIn') : t('login')}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+      <main className="flex-1 flex items-center justify-center">
+        <Card className="w-full max-w-sm">
+          <CardHeader className="text-center">
+            <CardTitle>{t('welcome')}</CardTitle>
+            <CardDescription>{t('enterUserCode')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="user-code">{t('userCode')}</Label>
+                <Input
+                  id="user-code"
+                  placeholder="e.g., guilhermevolp93"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={loading || !code}
+              >
+                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
+                {loading ? t('loggingIn') : t('login')}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </main>
-    </>
+    </div>
   );
 }

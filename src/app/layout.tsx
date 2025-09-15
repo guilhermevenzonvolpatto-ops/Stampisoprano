@@ -24,7 +24,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${fontBody.variable} font-sans antialiased`}>
         <AppProvider>
-          <div className="relative flex min-h-screen flex-col bg-background">
+          <div className="relative flex min-h-screen flex-col">
             {children}
           </div>
           <Toaster />

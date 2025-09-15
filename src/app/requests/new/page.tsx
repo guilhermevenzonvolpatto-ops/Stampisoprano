@@ -1,4 +1,5 @@
 
+
 import { getMolds, getMachines } from '@/lib/data';
 import { RestrictedPage } from '@/components/layout/restricted-page';
 import Link from 'next/link';
@@ -12,14 +13,18 @@ export default async function NewMaintenanceRequestPage() {
 
   return (
     <RestrictedPage adminOnly>
-      <Header />
-      <main className="container mx-auto py-10">
-        <h1 className="text-3xl font-bold font-headline mb-2">New Maintenance Request</h1>
-        <p className="text-muted-foreground mb-6">
-          Submit a request for maintenance or modification on a mold or machine. This will be reviewed for approval.
-        </p>
-        <RequestMaintenanceForm allMolds={molds} allMachines={machines} />
-      </main>
+      <div className="flex flex-col h-screen">
+        <Header />
+        <main className="flex-1 overflow-y-auto">
+          <div className="container mx-auto py-10">
+            <h1 className="text-3xl font-bold font-headline mb-2">New Maintenance Request</h1>
+            <p className="text-muted-foreground mb-6">
+              Submit a request for maintenance or modification on a mold or machine. This will be reviewed for approval.
+            </p>
+            <RequestMaintenanceForm allMolds={molds} allMachines={machines} />
+          </div>
+        </main>
+      </div>
     </RestrictedPage>
   );
 }

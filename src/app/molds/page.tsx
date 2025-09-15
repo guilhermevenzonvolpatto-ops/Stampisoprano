@@ -44,14 +44,16 @@ export default async function MoldsPage() {
 
   return (
     <RestrictedPage>
+      <div className="flex flex-col h-screen">
         <Header />
-        <main className="flex-1">
+        <main className="flex-1 overflow-y-auto">
             <div className="container mx-auto py-10">
                 <h1 className="text-3xl font-bold font-headline mb-2">Mold Inventory</h1>
                 <p className="text-muted-foreground mb-6">Manage and track all molds in the system.</p>
                 <MoldsTable data={moldsWithAvailability} />
             </div>
       </main>
+      </div>
     </RestrictedPage>
   );
 }

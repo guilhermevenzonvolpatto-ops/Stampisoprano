@@ -1,4 +1,5 @@
 
+
 import { getMachine, getEventsForSource } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import {
@@ -41,83 +42,85 @@ export default async function MachineDetailPage({
 
   return (
     <RestrictedPage adminOnly>
-      <Header />
-      <main className="flex-1">
-        <div className="container mx-auto py-10">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <Link
-                href="/machines"
-                className="text-sm text-muted-foreground hover:underline flex items-center mb-2"
-              >
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Back to Machines
-              </Link>
-              <h1 className="text-3xl font-bold font-headline">{machine.codice}</h1>
-              <p className="text-lg text-muted-foreground">{machine.descrizione}</p>
-            </div>
-            <div className="text-right space-y-2 flex items-center gap-2">
+      <div className="flex flex-col h-screen">
+        <Header />
+        <main className="flex-1 overflow-y-auto">
+          <div className="container mx-auto py-10">
+            <div className="flex justify-between items-start mb-6">
               <div>
-                  <p className="text-sm text-muted-foreground">Current Status</p>
-                  <Badge
-                    className={`text-base mt-1 ${getStatusClass(machine.stato)}`}
-                  >
-                    {machine.stato}
-                  </Badge>
+                <Link
+                  href="/machines"
+                  className="text-sm text-muted-foreground hover:underline flex items-center mb-2"
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Back to Machines
+                </Link>
+                <h1 className="text-3xl font-bold font-headline">{machine.codice}</h1>
+                <p className="text-lg text-muted-foreground">{machine.descrizione}</p>
               </div>
-              <AdminButton href={`/machines/${machine.id}/edit`} variant="outline" size="sm">
-                  <Pencil className="mr-2 h-4 w-4" />
-                  Edit Machine
-              </AdminButton>
-               <DeleteButton 
-                  itemId={machine.id}
-                  itemType="machine"
-                  itemName={machine.codice}
-                  redirectPath="/machines"
-                />
+              <div className="text-right space-y-2 flex items-center gap-2">
+                <div>
+                    <p className="text-sm text-muted-foreground">Current Status</p>
+                    <Badge
+                      className={`text-base mt-1 ${getStatusClass(machine.stato)}`}
+                    >
+                      {machine.stato}
+                    </Badge>
+                </div>
+                <AdminButton href={`/machines/${machine.id}/edit`} variant="outline" size="sm">
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit Machine
+                </AdminButton>
+                 <DeleteButton 
+                    itemId={machine.id}
+                    itemType="machine"
+                    itemName={machine.codice}
+                    redirectPath="/machines"
+                  />
+              </div>
             </div>
-          </div>
 
-          <div className="grid gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2 space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Details</CardTitle>
-                </CardHeader>
-                <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <p className="font-semibold">Type</p>
-                    <p className="text-muted-foreground">{machine.tipo}</p>
-                  </div>
-                  {machine.serialNumber && (
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2 space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Details</CardTitle>
+                  </CardHeader>
+                  <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                     <div>
-                      <p className="font-semibold">Serial Number</p>
-                      <p className="text-muted-foreground">{machine.serialNumber}</p>
+                      <p className="font-semibold">Type</p>
+                      <p className="text-muted-foreground">{machine.tipo}</p>
                     </div>
-                  )}
-                  {machine.manufacturingYear && (
-                    <div>
-                      <p className="font-semibold">Manufacturing Year</p>
-                      <p className="text-muted-foreground">{machine.manufacturingYear}</p>
-                    </div>
-                  )}
-                  {machine.purchaseCost && (
-                    <div>
-                      <p className="font-semibold">Purchase Cost</p>
-                      <p className="text-muted-foreground">€{machine.purchaseCost.toLocaleString()}</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-              <EditCustomFields item={machine as Machine | Component} itemType="machine" />
-              <MachineAttachments machine={machine} />
-            </div>
-            <div className="lg:col-span-1">
-              <EventTimeline sourceId={machine.id} />
+                    {machine.serialNumber && (
+                      <div>
+                        <p className="font-semibold">Serial Number</p>
+                        <p className="text-muted-foreground">{machine.serialNumber}</p>
+                      </div>
+                    )}
+                    {machine.manufacturingYear && (
+                      <div>
+                        <p className="font-semibold">Manufacturing Year</p>
+                        <p className="text-muted-foreground">{machine.manufacturingYear}</p>
+                      </div>
+                    )}
+                    {machine.purchaseCost && (
+                      <div>
+                        <p className="font-semibold">Purchase Cost</p>
+                        <p className="text-muted-foreground">€{machine.purchaseCost.toLocaleString()}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+                <EditCustomFields item={machine as Machine | Component} itemType="machine" />
+                <MachineAttachments machine={machine} />
+              </div>
+              <div className="lg:col-span-1">
+                <EventTimeline sourceId={machine.id} />
+              </div>
             </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </RestrictedPage>
   );
 }

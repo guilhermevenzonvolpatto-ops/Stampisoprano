@@ -1,3 +1,4 @@
+
 'use client';
 
 import { getMold, getComponentsForMold, getEventsForSource } from '@/lib/data';
@@ -68,8 +69,9 @@ export default function MoldDetailPage({
 
   return (
     <RestrictedPage allowedCode={mold.codice}>
+      <div className="flex flex-col h-screen">
       <Header />
-      <main className="flex-1">
+      <main className="flex-1 overflow-y-auto">
       <div className="container mx-auto py-10">
         <div className="flex justify-between items-start mb-6">
           <div>
@@ -197,6 +199,7 @@ export default function MoldDetailPage({
         </div>
       </div>
       </main>
+      </div>
     </RestrictedPage>
   );
 }

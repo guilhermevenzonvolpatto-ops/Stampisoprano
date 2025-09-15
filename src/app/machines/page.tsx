@@ -1,4 +1,5 @@
 
+
 import { getMachines, getUpcomingEvents } from '@/lib/data';
 import { MachinesTable } from '@/app/machines/components/machines-table';
 import { RestrictedPage } from '@/components/layout/restricted-page';
@@ -30,14 +31,16 @@ export default async function MachinesPage() {
 
   return (
     <RestrictedPage adminOnly>
+      <div className="flex flex-col h-screen">
         <Header />
-        <main className="flex-1">
+        <main className="flex-1 overflow-y-auto">
             <div className="container mx-auto py-10">
                 <h1 className="text-3xl font-bold font-headline mb-2">Machine Inventory</h1>
                 <p className="text-muted-foreground mb-6">Manage and track all machines and assets in the system.</p>
                 <MachinesTable data={machinesWithAvailability} />
             </div>
       </main>
+      </div>
     </RestrictedPage>
   );
 }

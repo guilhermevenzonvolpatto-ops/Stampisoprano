@@ -71,136 +71,138 @@ export default async function ComponentDetailPage({
 
   return (
     <RestrictedPage allowedCode={component.codice}>
-      <Header />
-      <main className="flex-1">
-        <div className="container mx-auto py-10">
-            <div className="flex justify-between items-start mb-6">
-            <div>
-                <Link
-                href="/components"
-                className="text-sm text-muted-foreground hover:underline flex items-center mb-2"
-                >
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Back to Components
-                </Link>
-                <h1 className="text-3xl font-bold font-headline">{component.codice}</h1>
-                <p className="text-lg text-muted-foreground">{component.descrizione}</p>
-            </div>
-            <div className="text-right space-y-2 flex items-center gap-2">
-                <div>
-                    <p className="text-sm text-muted-foreground">Current Status</p>
-                    <Badge
-                    className={`text-base mt-1 ${getStatusClass(component.stato)}`}
-                    >
-                    {component.stato}
-                    </Badge>
-                </div>
-                <Button asChild variant="outline" size="sm">
-                    <Link href={`/components/${component.id}/edit`}>
-                        <FilePenLine className="mr-2 h-4 w-4" />
-                        Edit Stamping Data
-                    </Link>
-                </Button>
-                <DeleteButton 
-                    itemId={component.id}
-                    itemType="component"
-                    itemName={component.codice}
-                    redirectPath="/components"
-                />
-            </div>
-            </div>
+      <div className="flex flex-col h-screen">
+        <Header />
+        <main className="flex-1 overflow-y-auto">
+          <div className="container mx-auto py-10">
+              <div className="flex justify-between items-start mb-6">
+              <div>
+                  <Link
+                  href="/components"
+                  className="text-sm text-muted-foreground hover:underline flex items-center mb-2"
+                  >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Back to Components
+                  </Link>
+                  <h1 className="text-3xl font-bold font-headline">{component.codice}</h1>
+                  <p className="text-lg text-muted-foreground">{component.descrizione}</p>
+              </div>
+              <div className="text-right space-y-2 flex items-center gap-2">
+                  <div>
+                      <p className="text-sm text-muted-foreground">Current Status</p>
+                      <Badge
+                      className={`text-base mt-1 ${getStatusClass(component.stato)}`}
+                      >
+                      {component.stato}
+                      </Badge>
+                  </div>
+                  <Button asChild variant="outline" size="sm">
+                      <Link href={`/components/${component.id}/edit`}>
+                          <FilePenLine className="mr-2 h-4 w-4" />
+                          Edit Stamping Data
+                      </Link>
+                  </Button>
+                  <DeleteButton 
+                      itemId={component.id}
+                      itemType="component"
+                      itemName={component.codice}
+                      redirectPath="/components"
+                  />
+              </div>
+              </div>
 
-            <div className="grid gap-6">
-            <div className="grid gap-6 lg:grid-cols-2">
-                <EditCustomFields item={component as Mold | Component} itemType="component" />
-                <Card className="lg:col-span-2">
-                <CardHeader>
-                    <CardTitle>Component Details</CardTitle>
-                </CardHeader>
-                <CardContent className="grid md:grid-cols-3 gap-4 text-sm">
-                    <div>
-                    <p className="font-semibold">Material</p>
-                    <p className="text-muted-foreground">{component.materiale}</p>
-                    </div>
-                    <div>
-                    <p className="font-semibold">Weight</p>
-                    <p className="text-muted-foreground">{component.peso}g</p>
-                    </div>
-                    <div>
-                    <p className="font-semibold">Total Cycles</p>
-                    <p className="text-muted-foreground">{(component.cicliTotali || 0).toLocaleString()}</p>
-                    </div>
-                    {component.dataRilascio && (
-                    <div>
-                        <p className="font-semibold">Release Date</p>
-                        <p className="text-muted-foreground">{component.dataRilascio}</p>
-                    </div>
-                    )}
-                    {component.datiMateriaPrima?.codiceMaterialeSpecifico && (
-                    <div>
-                        <p className="font-semibold">Specific Material Code</p>
-                        <p className="text-muted-foreground">{component.datiMateriaPrima.codiceMaterialeSpecifico}</p>
-                    </div>
-                    )}
-                     <div className="flex items-center space-x-2">
-                        {component.isAesthetic ? <Check className="h-5 w-5 text-green-600" /> : <X className="h-5 w-5 text-destructive" />}
-                        <span className={cn("font-medium", !component.isAesthetic && "text-muted-foreground")}>Aesthetic</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        {component.isFoodContact ? <Check className="h-5 w-5 text-green-600" /> : <X className="h-5 w-5 text-destructive" />}
-                        <span className={cn("font-medium", !component.isFoodContact && "text-muted-foreground")}>Food Contact</span>
-                    </div>
-                </CardContent>
-                </Card>
-                
-                {hasStampingData && (
-                <Card className="lg:col-span-2">
-                <CardHeader>
-                    <CardTitle>Stamping Data</CardTitle>
-                </CardHeader>
-                <CardContent className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-                    {stampingDataFields.map(field => {
-                        const value = stampingData[field.key as keyof typeof stampingData];
-                        return value ? (
-                            <div key={field.key}><p className="font-semibold">{field.label}</p><p className="text-muted-foreground">{value}{field.unit ? ` ${field.unit}`: ''}</p></div>
-                        ) : null
-                    })}
-                </CardContent>
-                </Card>
-                )}
+              <div className="grid gap-6">
+              <div className="grid gap-6 lg:grid-cols-2">
+                  <EditCustomFields item={component as Mold | Component} itemType="component" />
+                  <Card className="lg:col-span-2">
+                  <CardHeader>
+                      <CardTitle>Component Details</CardTitle>
+                  </CardHeader>
+                  <CardContent className="grid md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                      <p className="font-semibold">Material</p>
+                      <p className="text-muted-foreground">{component.materiale}</p>
+                      </div>
+                      <div>
+                      <p className="font-semibold">Weight</p>
+                      <p className="text-muted-foreground">{component.peso}g</p>
+                      </div>
+                      <div>
+                      <p className="font-semibold">Total Cycles</p>
+                      <p className="text-muted-foreground">{(component.cicliTotali || 0).toLocaleString()}</p>
+                      </div>
+                      {component.dataRilascio && (
+                      <div>
+                          <p className="font-semibold">Release Date</p>
+                          <p className="text-muted-foreground">{component.dataRilascio}</p>
+                      </div>
+                      )}
+                      {component.datiMateriaPrima?.codiceMaterialeSpecifico && (
+                      <div>
+                          <p className="font-semibold">Specific Material Code</p>
+                          <p className="text-muted-foreground">{component.datiMateriaPrima.codiceMaterialeSpecifico}</p>
+                      </div>
+                      )}
+                       <div className="flex items-center space-x-2">
+                          {component.isAesthetic ? <Check className="h-5 w-5 text-green-600" /> : <X className="h-5 w-5 text-destructive" />}
+                          <span className={cn("font-medium", !component.isAesthetic && "text-muted-foreground")}>Aesthetic</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                          {component.isFoodContact ? <Check className="h-5 w-5 text-green-600" /> : <X className="h-5 w-5 text-destructive" />}
+                          <span className={cn("font-medium", !component.isFoodContact && "text-muted-foreground")}>Food Contact</span>
+                      </div>
+                  </CardContent>
+                  </Card>
+                  
+                  {hasStampingData && (
+                  <Card className="lg:col-span-2">
+                  <CardHeader>
+                      <CardTitle>Stamping Data</CardTitle>
+                  </CardHeader>
+                  <CardContent className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                      {stampingDataFields.map(field => {
+                          const value = stampingData[field.key as keyof typeof stampingData];
+                          return value ? (
+                              <div key={field.key}><p className="font-semibold">{field.label}</p><p className="text-muted-foreground">{value}{field.unit ? ` ${field.unit}`: ''}</p></div>
+                          ) : null
+                      })}
+                  </CardContent>
+                  </Card>
+                  )}
 
-                <ComponentAttachments component={component} />
+                  <ComponentAttachments component={component} />
 
-                <ComponentChecklist component={component} />
+                  <ComponentChecklist component={component} />
 
-                <Card className="lg:col-span-2">
-                <CardHeader>
-                    <CardTitle>Associated Molds</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                    {associatedMolds.length > 0 ? (
-                    associatedMolds.map((mold) => (
-                        <Link href={`/molds/${mold.id}`} key={mold.id} className="block p-3 rounded-lg hover:bg-muted border">
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <p className="font-semibold text-sm">{mold.codice}</p>
-                                    <p className="text-xs text-muted-foreground">{mold.descrizione}</p>
-                                </div>
-                                <Badge variant={mold.stato === 'Operativo' ? 'default' : 'destructive'} className="text-xs">{mold.stato}</Badge>
-                            </div>
-                        </Link>
-                    ))
-                    ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">No molds associated with this component.</p>
-                    )}
-                </CardContent>
-                </Card>
-            </div>
-            <ProductionHistory logs={productionLogs} componentId={component.id}/>
-            <StampingHistory history={stampingHistory} />
-            </div>
-        </div>
-      </main>
+                  <Card className="lg:col-span-2">
+                  <CardHeader>
+                      <CardTitle>Associated Molds</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                      {associatedMolds.length > 0 ? (
+                      associatedMolds.map((mold) => (
+                          <Link href={`/molds/${mold.id}`} key={mold.id} className="block p-3 rounded-lg hover:bg-muted border">
+                              <div className="flex justify-between items-center">
+                                  <div>
+                                      <p className="font-semibold text-sm">{mold.codice}</p>
+                                      <p className="text-xs text-muted-foreground">{mold.descrizione}</p>
+                                  </div>
+                                  <Badge variant={mold.stato === 'Operativo' ? 'default' : 'destructive'} className="text-xs">{mold.stato}</Badge>
+                              </div>
+                          </Link>
+                      ))
+                      ) : (
+                      <p className="text-sm text-muted-foreground text-center py-4">No molds associated with this component.</p>
+                      )}
+                  </CardContent>
+                  </Card>
+              </div>
+              <ProductionHistory logs={productionLogs} componentId={component.id}/>
+              <StampingHistory history={stampingHistory} />
+              </div>
+          </div>
+        </main>
+      </div>
     </RestrictedPage>
   );
 }
