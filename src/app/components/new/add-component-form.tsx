@@ -40,10 +40,20 @@ const formSchema = z.object({
   isFoodContact: z.boolean().default(false).optional(),
   associatedMolds: z.array(z.string()).optional(),
   customFields: z.array(customFieldSchema).optional(),
+  // Stamping Data
+  programName: z.string().optional(),
+  cycleTime: z.coerce.number().optional(),
   injectionTime: z.coerce.number().optional(),
   holdingPressure: z.coerce.number().optional(),
   meltTemperature: z.coerce.number().optional(),
+  moldTemperature: z.coerce.number().optional(),
   clampForce: z.coerce.number().optional(),
+  injectionPressure: z.coerce.number().optional(),
+  postPressure: z.coerce.number().optional(),
+  maintenanceTime: z.coerce.number().optional(),
+  coolingTime: z.coerce.number().optional(),
+  counterPressure: z.coerce.number().optional(),
+  injectionSpeed: z.coerce.number().optional(),
 });
 
 interface AddComponentFormProps {
@@ -67,10 +77,19 @@ export function AddComponentForm({ allMolds }: AddComponentFormProps) {
       isFoodContact: false,
       associatedMolds: [],
       customFields: [],
+      programName: '',
+      cycleTime: undefined,
       injectionTime: undefined,
       holdingPressure: undefined,
       meltTemperature: undefined,
+      moldTemperature: undefined,
       clampForce: undefined,
+      injectionPressure: undefined,
+      postPressure: undefined,
+      maintenanceTime: undefined,
+      coolingTime: undefined,
+      counterPressure: undefined,
+      injectionSpeed: undefined,
     },
   });
 
@@ -88,10 +107,19 @@ export function AddComponentForm({ allMolds }: AddComponentFormProps) {
       }, {} as Record<string, string>);
       
       const stampingData: StampingData = {
+        programName: values.programName,
+        cycleTime: values.cycleTime,
         injectionTime: values.injectionTime,
         holdingPressure: values.holdingPressure,
         meltTemperature: values.meltTemperature,
+        moldTemperature: values.moldTemperature,
         clampForce: values.clampForce,
+        injectionPressure: values.injectionPressure,
+        postPressure: values.postPressure,
+        maintenanceTime: values.maintenanceTime,
+        coolingTime: values.coolingTime,
+        counterPressure: values.counterPressure,
+        injectionSpeed: values.injectionSpeed,
       }
 
       const newComponentData: Omit<Component, 'id' | 'stato' | 'cicliTotali' | 'isDeleted'> = {
@@ -256,59 +284,20 @@ export function AddComponentForm({ allMolds }: AddComponentFormProps) {
             <CardTitle>Stamping Data (Optional)</CardTitle>
             <CardDescription>Provide the injection process parameters for this component.</CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="injectionTime"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Injection Time (s)</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g., 2.5" {...field} value={field.value ?? ''} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="holdingPressure"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Holding Pressure (bar)</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g., 600" {...field} value={field.value ?? ''} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="meltTemperature"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Melt Temperature (°C)</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g., 280" {...field} value={field.value ?? ''} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="clampForce"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Clamp Force (t)</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g., 200" {...field} value={field.value ?? ''} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <FormField control={form.control} name="programName" render={({ field }) => (<FormItem><FormLabel>Program Name</FormLabel><FormControl><Input placeholder="e.g., PROG-123" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="cycleTime" render={({ field }) => (<FormItem><FormLabel>Cycle Time (s)</FormLabel><FormControl><Input type="number" placeholder="e.g., 22.5" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="injectionTime" render={({ field }) => (<FormItem><FormLabel>Injection Time (s)</FormLabel><FormControl><Input type="number" placeholder="e.g., 2.5" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="holdingPressure" render={({ field }) => (<FormItem><FormLabel>Holding Pressure (bar)</FormLabel><FormControl><Input type="number" placeholder="e.g., 600" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="meltTemperature" render={({ field }) => (<FormItem><FormLabel>Melt Temperature (°C)</FormLabel><FormControl><Input type="number" placeholder="e.g., 280" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="moldTemperature" render={({ field }) => (<FormItem><FormLabel>Mold Temperature (°C)</FormLabel><FormControl><Input type="number" placeholder="e.g., 80" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="clampForce" render={({ field }) => (<FormItem><FormLabel>Clamp Force (t)</FormLabel><FormControl><Input type="number" placeholder="e.g., 200" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="injectionPressure" render={({ field }) => (<FormItem><FormLabel>Injection Pressure (bar)</FormLabel><FormControl><Input type="number" placeholder="e.g., 1200" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="postPressure" render={({ field }) => (<FormItem><FormLabel>Post Pressure (bar)</FormLabel><FormControl><Input type="number" placeholder="e.g., 450" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="maintenanceTime" render={({ field }) => (<FormItem><FormLabel>Maintenance Time (s)</FormLabel><FormControl><Input type="number" placeholder="e.g., 3600" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="coolingTime" render={({ field }) => (<FormItem><FormLabel>Cooling Time (s)</FormLabel><FormControl><Input type="number" placeholder="e.g., 15" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="counterPressure" render={({ field }) => (<FormItem><FormLabel>Counter Pressure (bar)</FormLabel><FormControl><Input type="number" placeholder="e.g., 50" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="injectionSpeed" render={({ field }) => (<FormItem><FormLabel>Injection Speed (mm/s)</FormLabel><FormControl><Input type="number" placeholder="e.g., 150" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
           </CardContent>
         </Card>
 
