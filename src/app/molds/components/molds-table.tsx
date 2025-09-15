@@ -18,6 +18,7 @@ import {
   Download,
   Upload,
   CornerDownRight,
+  RefreshCw,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
@@ -32,6 +33,7 @@ import { useApp } from '@/context/app-context';
 import { ImportMoldsDialog } from './import-molds-dialog';
 import { AdminButton } from '@/components/layout/admin-button';
 import { DeleteButton } from '@/components/shared/delete-button';
+import { useRouter } from 'next/navigation';
 
 interface MoldsTableProps {
   data: Mold[];
@@ -44,6 +46,7 @@ export function MoldsTable({ data }: MoldsTableProps) {
   const [statusFilter, setStatusFilter] = React.useState('all');
   const [isImporting, setIsImporting] = React.useState(false);
   const { user, t } = useApp();
+  const router = useRouter();
 
 
   const getStatusClass = (status: Mold['stato']) => {
@@ -130,19 +133,19 @@ export function MoldsTable({ data }: MoldsTableProps) {
   return (
     <>
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-2">
             <Input
               placeholder={t('searchMolds')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-80"
+              className="w-full sm:w-64"
             />
             <Select
               value={statusFilter}
               onValueChange={setStatusFilter}
             >
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder={t('filterByStatus')} />
               </SelectTrigger>
               <SelectContent>
@@ -153,6 +156,9 @@ export function MoldsTable({ data }: MoldsTableProps) {
                 <SelectItem value="Fermo">{t('stopped')}</SelectItem>
               </SelectContent>
             </Select>
+            <Button variant="ghost" size="icon" onClick={() => router.refresh()}>
+                <RefreshCw className="h-4 w-4" />
+            </Button>
           </div>
           <div className="flex items-center gap-2">
             {user?.isAdmin && (

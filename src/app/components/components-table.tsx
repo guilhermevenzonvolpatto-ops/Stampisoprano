@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import Link from 'next/link';
@@ -12,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Component } from '@/lib/types';
-import { PlusCircle, Upload, Download, Check, X } from 'lucide-react';
+import { PlusCircle, Upload, Download, Check, X, RefreshCw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/context/app-context';
 import { AdminButton } from '@/components/layout/admin-button';
@@ -20,6 +21,7 @@ import { DeleteButton } from '@/components/shared/delete-button';
 import { ImportComponentsDialog } from './import-components-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 interface ComponentsTableProps {
   data: Component[];
@@ -31,6 +33,8 @@ export function ComponentsTable({ data }: ComponentsTableProps) {
   const [foodContactFilter, setFoodContactFilter] = React.useState('all');
   const [isImporting, setIsImporting] = React.useState(false);
   const { user, t } = useApp();
+  const router = useRouter();
+
 
   const getStatusClass = (status: Component['stato']) => {
     switch (status) {
@@ -134,6 +138,9 @@ export function ComponentsTable({ data }: ComponentsTableProps) {
                     <SelectItem value="no">Not Food Contact</SelectItem>
                 </SelectContent>
             </Select>
+             <Button variant="ghost" size="icon" onClick={() => router.refresh()}>
+                <RefreshCw className="h-4 w-4" />
+            </Button>
           </div>
           <div className="flex items-center gap-2">
             {user?.isAdmin && (

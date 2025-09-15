@@ -13,7 +13,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Check, X, Hourglass, Loader2, RefreshCw } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { updateMaintenanceRequestStatus, getMaintenanceRequests } from '@/lib/data';
 import {
@@ -38,6 +38,10 @@ export function RequestsTable({ initialRequests }: RequestsTableProps) {
   const [isLoading, setIsLoading] = React.useState<Record<string, boolean>>({});
   const { toast } = useToast();
   const router = useRouter();
+
+  React.useEffect(() => {
+    setRequests(initialRequests);
+  }, [initialRequests]);
 
 
   const handleUpdateStatus = async (requestId: string, status: 'approved' | 'rejected') => {
@@ -90,6 +94,12 @@ export function RequestsTable({ initialRequests }: RequestsTableProps) {
 
   return (
     <Card>
+       <CardHeader className="flex-row items-center justify-end">
+            <Button variant="ghost" size="sm" onClick={() => router.refresh()}>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Refresh Data
+            </Button>
+       </CardHeader>
       <CardContent className="p-0">
         <Table>
           <TableHeader>

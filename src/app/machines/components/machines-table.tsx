@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Machine } from '@/lib/types';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, RefreshCw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -25,6 +25,7 @@ import {
 import { useApp } from '@/context/app-context';
 import { AdminButton } from '@/components/layout/admin-button';
 import { DeleteButton } from '@/components/shared/delete-button';
+import { useRouter } from 'next/navigation';
 
 interface MachinesTableProps {
   data: Machine[];
@@ -34,6 +35,7 @@ export function MachinesTable({ data }: MachinesTableProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [statusFilter, setStatusFilter] = React.useState('all');
   const { user } = useApp();
+  const router = useRouter();
 
 
   const getStatusClass = (status: Machine['stato']) => {
@@ -92,6 +94,9 @@ export function MachinesTable({ data }: MachinesTableProps) {
               <SelectItem value="Fermo">Stopped</SelectItem>
             </SelectContent>
           </Select>
+          <Button variant="ghost" size="icon" onClick={() => router.refresh()}>
+              <RefreshCw className="h-4 w-4" />
+          </Button>
         </div>
         <div className="flex items-center gap-2">
           <AdminButton href="/machines/new">
