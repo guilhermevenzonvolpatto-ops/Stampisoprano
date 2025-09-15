@@ -80,3 +80,13 @@ La Dashboard di Analisi (solo per amministratori) fornisce approfondimenti visiv
 
 ### Localizzazione
 L'interfaccia utente può essere commutata tra **Inglese** e **Italiano** utilizzando il selettore di lingua nell'intestazione.
+
+## 4. Architettura e Gestione dei Dati
+
+L'applicazione è costruita con moderne tecnologie web per garantire sicurezza, performance e manutenibilità.
+
+-   **Database Principale (Firebase Firestore)**: Tutte le informazioni relative a stampi, componenti, macchine, utenti, eventi e log di produzione sono archiviate in **Firebase Firestore**. Si tratta di un database NoSQL gestito nel cloud, che offre flessibilità e scalabilità. I dati vengono registrati e letti tramite funzioni sicure eseguite sul server.
+
+-   **Archiviazione File (Vercel Blob Storage)**: I file caricati come allegati (ad esempio, disegni tecnici in formato PDF o STEP, immagini, documenti) vengono salvati su **Vercel Blob Storage**. Questo servizio è ottimizzato per distribuire file in modo rapido e affidabile a livello globale.
+
+-   **Logica Applicativa (Next.js Server Actions)**: La maggior parte delle operazioni di creazione, modifica ed eliminazione dei dati viene eseguita tramite **Next.js Server Actions**. Questo approccio garantisce che la logica di business critica rimanga sul server, migliorando la sicurezza e mantenendo l'interfaccia utente veloce e reattiva.
