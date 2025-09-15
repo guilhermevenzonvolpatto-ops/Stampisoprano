@@ -1,7 +1,8 @@
 
+'use client';
 
-import { getMachine, getEventsForSource } from '@/lib/data';
-import { notFound } from 'next/navigation';
+import { getMachine } from '@/lib/data';
+import { notFound, useRouter } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -19,16 +20,65 @@ import { DeleteButton } from '@/components/shared/delete-button';
 import Header from '@/components/layout/header';
 import { EventTimeline } from '@/components/shared/events/event-timeline';
 import { MachineAttachments } from '../components/machine-attachments';
+import { useState, useEffect, useCallback } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
-
-export default async function MachineDetailPage({
+export default function MachineDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const machine = await getMachine(params.id);
-  if (!machine) {
-    notFound();
+  const [machine, setMachine] = useState<Machine | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+
+  const fetchData = useCallback(async () => {
+    try {
+      const machineData = await getMachine(params.id);
+      if (!machineData) {
+        notFound();
+        return;
+      }
+      setMachine(machineData);
+    } catch (error) {
+      console.error("Failed to fetch machine data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [params.id]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleUpdate = () => {
+    setIsLoading(true);
+    fetchData();
+    router.refresh();
+  };
+
+  if (isLoading || !machine) {
+    return (
+      <div className="flex flex-col h-screen">
+        <Header />
+        <main className="flex-1 overflow-y-auto">
+          <div className="container mx-auto py-10">
+            <div className="space-y-4">
+              <Skeleton className="h-10 w-1/4" />
+              <div className="grid gap-6 lg:grid-cols-3">
+                <div className="lg:col-span-2 space-y-6">
+                  <Skeleton className="h-48 w-full" />
+                  <Skeleton className="h-48 w-full" />
+                </div>
+                <div className="lg:col-span-1">
+                  <Skeleton className="h-96 w-full" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
   }
 
   const getStatusClass = (status: Machine['stato']) => {
@@ -41,7 +91,7 @@ export default async function MachineDetailPage({
   };
 
   return (
-    <RestrictedPage adminOnly>
+    <RestrictedPage allowedCode={machine.codice}>
       <div className="flex flex-col h-screen">
         <Header />
         <main className="flex-1 overflow-y-auto">
@@ -115,7 +165,7 @@ export default async function MachineDetailPage({
                 <MachineAttachments machine={machine} />
               </div>
               <div className="lg:col-span-1">
-                <EventTimeline sourceId={machine.id} />
+                <EventTimeline sourceId={machine.id} onUpdate={handleUpdate} />
               </div>
             </div>
           </div>

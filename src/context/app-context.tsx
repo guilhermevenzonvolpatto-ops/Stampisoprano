@@ -2,8 +2,8 @@
 
 'use client';
 
-import { getUser, getComponentsForMold } from '@/lib/data';
-import type { User, Component } from '@/lib/types';
+import { getUser, getComponentsForMold, getMolds, getMachines } from '@/lib/data';
+import type { User, Component, Mold, Machine } from '@/lib/types';
 import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
 import en from '@/locales/en.json';
@@ -53,22 +53,34 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (baseUser.isAdmin || !baseUser.allowedCodes) {
       return baseUser;
     }
-  
+
+    const allMolds = await getMolds();
+    const allMachines = await getMachines();
+
+    const allowedMolds = allMolds.filter(m => baseUser.allowedCodes.includes(m.codice));
+    const allowedMachines = allMachines.filter(m => baseUser.allowedCodes.includes(m.codice));
+
     const expandedCodes = new Set(baseUser.allowedCodes);
-  
-    const moldCodes = baseUser.allowedCodes.filter(code => code.startsWith('ST-'));
-  
-    for (const moldCode of moldCodes) {
+
+    // For each allowed mold, get its components and add their codes
+    for (const mold of allowedMolds) {
       try {
-        const components: Component[] = await getComponentsForMold(moldCode);
+        const components: Component[] = await getComponentsForMold(mold.id);
         components.forEach(component => {
           expandedCodes.add(component.codice);
         });
       } catch (error) {
-        console.error(`Error fetching components for mold ${moldCode}:`, error);
+        console.error(`Error fetching components for mold ${mold.codice}:`, error);
       }
     }
-  
+    
+    // For each allowed mold, if it has a machine associated, add the machine code
+    for (const mold of allowedMolds) {
+        if (mold.macchinaAssociata) {
+            expandedCodes.add(mold.macchinaAssociata);
+        }
+    }
+
     return {
       ...baseUser,
       allowedCodes: Array.from(expandedCodes),
