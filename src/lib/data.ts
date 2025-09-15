@@ -19,6 +19,7 @@ import {
   arrayUnion,
   arrayRemove,
   writeBatch,
+  FieldValue,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Mold, Component, MoldEvent, User, ProductionLog, StampingDataHistoryEntry, StampingData, Machine, Attachment, MaintenanceRequest, MoldStatusDistribution, MoldSupplierDistribution, ComponentScrapRate } from './types';
@@ -547,13 +548,13 @@ export async function createMaintenanceRequest(
   data: Omit<MaintenanceRequest, 'id' | 'createdAt' | 'status'>
 ): Promise<MaintenanceRequest | { error: string }> {
   try {
-    const newRequest: Omit<MaintenanceRequest, 'id'> = {
+    const newRequest: Omit<MaintenanceRequest, 'id' | 'createdAt'> & { createdAt: FieldValue } = {
       ...data,
       status: 'pending',
       createdAt: serverTimestamp(),
     };
     const docRef = await addDoc(maintenanceRequestsCol, newRequest);
-    return { id: docRef.id, ...newRequest, createdAt: new Date() } as MaintenanceRequest;
+    return { id: docRef.id, ...data, status: 'pending', createdAt: new Date() } as MaintenanceRequest;
   } catch (error: any) {
     console.error("Error creating maintenance request:", error);
     return { error: "Failed to create maintenance request." };
