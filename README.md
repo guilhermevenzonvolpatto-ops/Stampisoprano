@@ -1,76 +1,76 @@
-# Sopranostampi App Documentation
+# Documentazione dell'App Sopranostampi
 
-This document provides a comprehensive overview of the features and functionality of the Sopranostampi application. This app is designed to be a powerful tool for managing molds, components, machines, and related operational data.
+Questo documento fornisce una panoramica completa delle caratteristiche e delle funzionalità dell'applicazione Sopranostampi. Questa app è progettata per essere un potente strumento per la gestione di stampi, componenti, macchine e dati operativi correlati.
 
-## 1. User Roles and Login
+## 1. Ruoli Utente e Accesso
 
-The application features a role-based access control system with two main user types:
+L'applicazione dispone di un sistema di controllo degli accessi basato sui ruoli con due tipi principali di utenti:
 
-*   **Administrator (`Admin`)**: Admins have full access to all data and functionality. They can create, edit, and delete all items (molds, components, machines), manage user accounts and permissions, view all analytics, and approve maintenance requests. The default admin user codes are `admin` and `guilhermevolp93`.
-*   **Standard User (`User`)**: Standard users have restricted access. They can only view the items (molds, components, machines) they have been explicitly granted permission for. Their view is tailored to their specific responsibilities. The default standard user is `user01`.
+*   **Amministratore (`Admin`)**: Gli amministratori hanno accesso completo a tutti i dati e le funzionalità. Possono creare, modificare ed eliminare tutti gli elementi (stampi, componenti, macchine), gestire gli account utente e le autorizzazioni, visualizzare tutte le analisi e approvare le richieste di manutenzione. I codici utente di default per gli amministratori sono `admin` e `guilhermevolp93`.
+*   **Utente Standard (`User`)**: Gli utenti standard hanno un accesso limitato. Possono visualizzare solo gli elementi (stampi, componenti, macchine) per cui è stata concessa loro esplicitamente l'autorizzazione. La loro visuale è personalizzata in base alle loro specifiche responsabilità. L'utente standard di default è `user01`.
 
-To log in, simply enter your assigned user code on the main page.
+Per accedere, inserisci semplicemente il tuo codice utente assegnato nella pagina principale.
 
-### Permission System
+### Sistema di Permessi
 
-The permission system for Standard Users is designed to be intelligent and efficient:
-- If a user is granted access to a **mold**, they automatically gain view access to all **components** associated with that mold and the **machine** the mold is assigned to.
-- If a user is granted access to a **component**, they automatically gain view access to all **molds** that can produce that component.
+Il sistema di permessi per gli Utenti Standard è progettato per essere intelligente ed efficiente:
+- Se a un utente viene concesso l'accesso a uno **stampo**, ottiene automaticamente l'accesso in visualizzazione a tutti i **componenti** associati a quello stampo e alla **macchina** a cui lo stampo è assegnato.
+- Se a un utente viene concesso l'accesso a un **componente**, ottiene automaticamente l'accesso in visualizzazione a tutti gli **stampi** che possono produrre quel componente.
 
-This ensures that users have access to the full context of the items they are responsible for without needing permissions to be assigned one by one.
+Questo assicura che gli utenti abbiano accesso al contesto completo degli articoli di cui sono responsabili, senza la necessità di assegnare i permessi uno per uno.
 
-## 2. Main Sections
+## 2. Sezioni Principali
 
 ### Dashboard
-The Dashboard is the central landing page after logging in. It provides a high-level overview of key metrics and quick access to common tasks.
-- **Stats Cards**: Displays key performance indicators (KPIs) like the total number of molds, molds currently in maintenance, and molds at external suppliers (visible to admins).
-- **Upcoming Events**: Shows a list of future scheduled events, such as maintenance or repairs, with overdue events highlighted.
-- **Associated Mold Finder**: A utility to quickly find which molds are required to produce a specific component.
-- **Quick Production Log**: A form to rapidly log production runs (good and scrapped pieces) for any component by searching for its code.
+La Dashboard è la pagina principale dopo aver effettuato l'accesso. Fornisce una panoramica di alto livello delle metriche chiave e un accesso rapido alle attività comuni.
+- **Schede Statistiche**: Mostra indicatori di performance chiave (KPI) come il numero totale di stampi, gli stampi attualmente in manutenzione e gli stampi presso fornitori esterni (visibile agli amministratori).
+- **Eventi Imminenti**: Mostra un elenco di eventi futuri programmati, come manutenzioni o riparazioni, con gli eventi scaduti evidenziati.
+- **Ricerca Stampi Associati**: Un'utilità per trovare rapidamente quali stampi sono necessari per produrre un componente specifico.
+- **Log Produzione Rapido**: Un modulo per registrare rapidamente le produzioni (pezzi buoni e scarti) per qualsiasi componente, cercandolo tramite il suo codice.
 
-### Molds
-This section is for managing the mold inventory.
-- **List View**: Displays all molds, including parent-child relationships (e.g., a sub-mold listed under its parent). You can search and filter by status. Admins can also import/export data via CSV.
-- **Detail View**: Clicking on a mold shows all its details, including:
-    - Basic info, position (internal/external), and technical/management data.
-    - **Attachments**: Upload and manage technical drawings, 3D files (STEP, IGES), and other documents.
-    - **Associated Components**: View a list of all components that can be produced by this mold.
-    - **Event History**: A timeline of all events (maintenance, repairs, costs) related to this mold. Admins can add, edit, or complete events from here.
+### Stampi
+Questa sezione è dedicata alla gestione dell'inventario degli stampi.
+- **Vista Elenco**: Mostra tutti gli stampi, incluse le relazioni padre-figlio (ad esempio, un sotto-stampo elencato sotto il suo stampo principale). È possibile cercare e filtrare per stato. Gli amministratori possono anche importare/esportare dati tramite CSV.
+- **Vista Dettaglio**: Cliccando su uno stampo si visualizzano tutti i suoi dettagli, tra cui:
+    - Informazioni di base, posizione (interna/esterna) e dati tecnici/gestionali.
+    - **Allegati**: Carica e gestisci disegni tecnici, file 3D (STEP, IGES) e altri documenti.
+    - **Componenti Associati**: Visualizza un elenco di tutti i componenti che possono essere prodotti da questo stampo.
+    - **Storico Eventi**: Una cronologia di tutti gli eventi (manutenzione, riparazioni, costi) relativi a questo stampo. Gli amministratori possono aggiungere, modificare o completare eventi da qui.
 
-### Components
-This section manages the inventory of all manufactured components.
-- **List View**: A searchable and filterable table of all components. Admins can import/export data via CSV.
-- **Detail View**: Provides a complete picture of a component, including:
-    - Basic info, material, weight, and total production cycles.
-    - **Stamping Data**: A detailed list of injection process parameters (e.g., cycle time, temperatures, pressures). This data can be edited by any user with access.
-    - **Stamping Data History**: An audit log tracking all changes made to the stamping parameters, including who made the change and when.
-    - **Production History**: A log of all individual production runs, showing good vs. scrapped parts.
-    - **Attachments & Checklist**: Manage component-specific files and quality control checklists.
+### Componenti
+Questa sezione gestisce l'inventario di tutti i componenti prodotti.
+- **Vista Elenco**: Una tabella ricercabile e filtrabile di tutti i componenti. Gli amministratori possono importare/esportare dati tramite CSV.
+- **Vista Dettaglio**: Fornisce una visione completa di un componente, tra cui:
+    - Informazioni di base, materiale, peso e cicli totali di produzione.
+    - **Dati di Stampaggio**: Un elenco dettagliato dei parametri del processo di iniezione (es. tempo ciclo, temperature, pressioni). Questi dati possono essere modificati da qualsiasi utente con accesso.
+    - **Storico Dati di Stampaggio**: Un registro di controllo che traccia tutte le modifiche apportate ai parametri di stampaggio, indicando chi ha effettuato la modifica e quando.
+    - **Storico Produzione**: Un registro di tutte le singole produzioni, che mostra le parti buone rispetto a quelle di scarto.
+    - **Allegati e Checklist**: Gestisci i file specifici del componente e le checklist di controllo qualità.
 
-### Machines
-This section, visible to administrators, is for managing production machinery.
-- **List View**: A searchable and filterable table of all machines.
-- **Detail View**: Shows machine details (type, serial number, cost) and its complete event history (maintenance, repairs).
+### Macchine
+Questa sezione, visibile agli amministratori, è per la gestione dei macchinari di produzione.
+- **Vista Elenco**: Una tabella ricercabile e filtrabile di tutte le macchine.
+- **Vista Dettaglio**: Mostra i dettagli della macchina (tipo, numero di serie, costo) e il suo storico completo degli eventi (manutenzione, riparazioni).
 
-## 3. Workflows and Features
+## 3. Flussi di Lavoro e Funzionalità
 
-### Event Management
-Events track the lifecycle of molds and machines.
-- **Creating Events**: Admins can add events directly from an item's detail page, specifying the type (Maintenance, Repair, etc.), description, and estimated end date.
-- **Updating Events**: Open events can be edited. You can also mark an event as "Completed," which automatically sets the item's status back to "Operativo" (Operational) if no other open events exist.
+### Gestione Eventi
+Gli eventi tracciano il ciclo di vita di stampi e macchine.
+- **Creazione Eventi**: Gli amministratori possono aggiungere eventi direttamente dalla pagina di dettaglio di un articolo, specificando il tipo (Manutenzione, Riparazione, ecc.), la descrizione e la data di fine prevista.
+- **Aggiornamento Eventi**: Gli eventi aperti possono essere modificati. È anche possibile contrassegnare un evento come "Completato", il che imposta automaticamente lo stato dell'articolo su "Operativo" se non ci sono altri eventi aperti.
 
-### Maintenance Requests
-This admin-only section streamlines the process for requesting work on assets.
-- **Submitting a Request**: Any user can submit a request for maintenance via the "New Request" page, specifying the item and the reason.
-- **Approval Workflow**: Administrators can review pending requests. Approving a request automatically creates a new "Maintenance" event for the specified item and puts it into the "In Manutenzione" state.
+### Richieste di Manutenzione
+Questa sezione, solo per amministratori, semplifica il processo di richiesta di interventi sugli asset.
+- **Invio di una Richiesta**: Qualsiasi utente può inviare una richiesta di manutenzione tramite la pagina "Nuova Richiesta", specificando l'articolo e il motivo.
+- **Flusso di Approvazione**: Gli amministratori possono esaminare le richieste in sospeso. L'approvazione di una richiesta crea automaticamente un nuovo evento di "Manutenzione" per l'articolo specificato e lo imposta sullo stato "In Manutenzione".
 
-### Analytics
-The Analytics Dashboard (admin-only) provides visual insights into key business metrics:
-- **Mold Status Distribution**: A pie chart showing the current status of all molds.
-- **Molds by Supplier**: A bar chart showing how many molds are located at each external supplier.
-- **Component Scrap Rate**: A bar chart highlighting which components have the highest percentage of scrapped parts, helping to identify quality issues.
-- **Event Schedule Adherence**: A chart comparing the estimated vs. actual completion dates for events, showing the average delay for different event types.
-- **Maintenance Costs Over Time**: A line chart tracking total maintenance and repair costs per month.
+### Analisi
+La Dashboard di Analisi (solo per amministratori) fornisce approfondimenti visivi sulle metriche aziendali chiave:
+- **Distribuzione Stato Stampi**: Un grafico a torta che mostra lo stato attuale di tutti gli stampi.
+- **Stampi per Fornitore**: Un grafico a barre che mostra quanti stampi si trovano presso ciascun fornitore esterno.
+- **Tasso di Scarto dei Componenti**: Un grafico a barre che evidenzia quali componenti hanno la più alta percentuale di parti scartate, aiutando a identificare problemi di qualità.
+- **Aderenza alla Pianificazione degli Eventi**: Un grafico che confronta le date di completamento stimate con quelle effettive per gli eventi, mostrando il ritardo medio per diversi tipi di evento.
+- **Costi di Manutenzione nel Tempo**: Un grafico a linee che traccia i costi totali di manutenzione e riparazione per mese.
 
-### Localization
-The user interface can be switched between **English** and **Italiano** using the language switcher in the header.
+### Localizzazione
+L'interfaccia utente può essere commutata tra **Inglese** e **Italiano** utilizzando il selettore di lingua nell'intestazione.
