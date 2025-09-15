@@ -55,17 +55,18 @@ export function ImportComponentsDialog({ isOpen, onClose }: ImportComponentsDial
         const errors: string[] = [];
 
         for (const row of results.data as any[]) {
-          if (!row.codice || !row.descrizione || !row.materiale || !row.peso) {
+          const { codice, descrizione, materiale, peso } = row;
+          if (!codice || !descrizione || !materiale || peso === null || peso === undefined || isNaN(parseFloat(peso))) {
               errorCount++;
-              errors.push(`Row for ${row.codice || 'unknown code'} has missing required fields.`);
+              errors.push(`Row for ${codice || 'unknown code'} has missing or invalid required fields.`);
               continue;
           }
 
           const componentData: Omit<Component, 'id' | 'stato' | 'cicliTotali' | 'isDeleted'> = {
-            codice: row.codice,
-            descrizione: row.descrizione,
-            materiale: row.materiale,
-            peso: parseFloat(row.peso),
+            codice: codice,
+            descrizione: descrizione,
+            materiale: materiale,
+            peso: parseFloat(peso),
             associatedMolds: row.associatedMolds ? row.associatedMolds.split(';') : [],
           };
 
