@@ -106,6 +106,9 @@ export interface Machine {
   tipo: string;
   stato: 'Operativo' | 'In Manutenzione' | 'Fermo';
   isDeleted: boolean;
+  purchaseCost?: number;
+  manufacturingYear?: number;
+  serialNumber?: string;
   customFields?: Record<string, any>;
   attachments?: Attachment[];
   availableAt?: string;

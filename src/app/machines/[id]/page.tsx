@@ -80,18 +80,36 @@ export default async function MachineDetailPage({
 
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-6">
-               <EditCustomFields item={machine as Machine | Component} itemType="machine" />
               <Card>
                 <CardHeader>
                   <CardTitle>Details</CardTitle>
                 </CardHeader>
-                <CardContent className="grid md:grid-cols-2 gap-4 text-sm">
+                <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                   <div>
                     <p className="font-semibold">Type</p>
                     <p className="text-muted-foreground">{machine.tipo}</p>
                   </div>
+                  {machine.serialNumber && (
+                    <div>
+                      <p className="font-semibold">Serial Number</p>
+                      <p className="text-muted-foreground">{machine.serialNumber}</p>
+                    </div>
+                  )}
+                  {machine.manufacturingYear && (
+                    <div>
+                      <p className="font-semibold">Manufacturing Year</p>
+                      <p className="text-muted-foreground">{machine.manufacturingYear}</p>
+                    </div>
+                  )}
+                  {machine.purchaseCost && (
+                    <div>
+                      <p className="font-semibold">Purchase Cost</p>
+                      <p className="text-muted-foreground">€{machine.purchaseCost.toLocaleString()}</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
+              <EditCustomFields item={machine as Machine | Component} itemType="machine" />
               <MachineAttachments machine={machine} />
             </div>
             <div className="lg:col-span-1">

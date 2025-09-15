@@ -57,8 +57,8 @@ const components = {
 };
 
 const machines = {
-    'MAC-01': { id: 'MAC-01', codice: 'MAC-01', descrizione: 'Pressa Arburg 200T', tipo: 'Iniezione', stato: 'Operativo', isDeleted: false, customFields: { 'Numero Serie': 'SN-582294', 'Data Installazione': '2021-03-15' } },
-    'MAC-02': { id: 'MAC-02', codice: 'MAC-02', descrizione: 'Pressa Engel 300T', tipo: 'Iniezione', stato: 'In Manutenzione', isDeleted: false },
+    'MAC-01': { id: 'MAC-01', codice: 'MAC-01', descrizione: 'Pressa Arburg 200T', tipo: 'Iniezione', stato: 'Operativo', isDeleted: false, purchaseCost: 150000, manufacturingYear: 2021, serialNumber: 'SN-582294', customFields: { 'Data Installazione': '2021-03-15' } },
+    'MAC-02': { id: 'MAC-02', codice: 'MAC-02', descrizione: 'Pressa Engel 300T', tipo: 'Iniezione', stato: 'In Manutenzione', isDeleted: false, purchaseCost: 250000, manufacturingYear: 2019, serialNumber: 'SN-ABC987' },
 };
 
 const eventsData = [

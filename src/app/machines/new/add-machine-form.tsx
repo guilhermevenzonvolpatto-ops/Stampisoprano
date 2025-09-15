@@ -31,6 +31,9 @@ const formSchema = z.object({
   codice: z.string().min(1, 'Code is required.').regex(/^\S*$/, 'Spaces are not allowed in the code.'),
   descrizione: z.string().min(1, 'Description is required.'),
   tipo: z.string().min(1, 'Type is required.'),
+  purchaseCost: z.coerce.number().optional(),
+  manufacturingYear: z.coerce.number().optional(),
+  serialNumber: z.string().optional(),
   customFields: z.array(customFieldSchema).optional(),
 });
 
@@ -66,6 +69,9 @@ export function AddMachineForm() {
                 codice: values.codice,
                 descrizione: values.descrizione,
                 tipo: values.tipo,
+                purchaseCost: values.purchaseCost,
+                manufacturingYear: values.manufacturingYear,
+                serialNumber: values.serialNumber,
                 customFields: customFieldsObject,
             };
 
@@ -139,6 +145,45 @@ export function AddMachineForm() {
                                     <FormLabel>Type</FormLabel>
                                     <FormControl>
                                         <Input placeholder="e.g., CNC" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="serialNumber"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Serial Number</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="e.g., SN-123456" {...field} value={field.value ?? ''} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="manufacturingYear"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Manufacturing Year</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="e.g., 2022" {...field} value={field.value ?? ''} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="purchaseCost"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Purchase Cost (€)</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="e.g., 150000" {...field} value={field.value ?? ''} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
