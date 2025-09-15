@@ -1,12 +1,11 @@
 
 'use client';
 
-import { getMold, getComponentsForMold, getEventsForSource } from '@/lib/data';
-import { notFound } from 'next/navigation';
+import { getMold, getComponentsForMold } from '@/lib/data';
+import { notFound, useRouter } from 'next/navigation';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -24,6 +23,7 @@ import { DeleteButton } from '@/components/shared/delete-button';
 import { useApp } from '@/context/app-context';
 import { useEffect, useState, useCallback } from 'react';
 import Header from '@/components/layout/header';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function MoldDetailPage({
   params,
@@ -34,9 +34,10 @@ export default function MoldDetailPage({
   const [associatedComponents, setAssociatedComponents] = useState<CompType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user, t } = useApp();
+  const router = useRouter();
+
 
   const fetchData = useCallback(async () => {
-    setIsLoading(true);
     try {
       const moldData = await getMold(params.id);
       if (!moldData) {
@@ -58,11 +59,35 @@ export default function MoldDetailPage({
     fetchData();
   }, [fetchData]);
 
+  const handleUpdate = () => {
+    // This will re-trigger the useEffect
+    setIsLoading(true);
+    fetchData();
+    router.refresh(); // Also explicitly refresh server-side props if needed
+  }
+
 
   if (isLoading || !mold) {
       return (
-          <div className="container mx-auto py-10">
-              <p>Loading...</p>
+          <div className="flex flex-col h-screen">
+            <Header />
+            <main className="flex-1 overflow-y-auto">
+              <div className="container mx-auto py-10">
+                <div className="space-y-4">
+                  <Skeleton className="h-10 w-1/4" />
+                  <div className="grid gap-6 lg:grid-cols-3">
+                    <div className="lg:col-span-2 space-y-6">
+                      <Skeleton className="h-48 w-full" />
+                      <Skeleton className="h-64 w-full" />
+                      <Skeleton className="h-48 w-full" />
+                    </div>
+                    <div className="lg:col-span-1">
+                      <Skeleton className="h-96 w-full" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </main>
           </div>
       )
   }
@@ -148,7 +173,9 @@ export default function MoldDetailPage({
                  {mold.macchinaAssociata && (
                   <div>
                     <p className="font-semibold">{t('associatedMachine')}</p>
-                    <p className="text-muted-foreground">{mold.macchinaAssociata}</p>
+                     <Link href={`/machines/${mold.macchinaAssociata}`} className="text-primary hover:underline">
+                      {mold.macchinaAssociata}
+                    </Link>
                   </div>
                 )}
               </CardContent>
@@ -191,10 +218,10 @@ export default function MoldDetailPage({
                </CardContent>
             </Card>
             <MoldAttachments mold={mold} />
-            <AssociatedComponents components={associatedComponents} moldId={mold.id} onUpdate={fetchData} />
+            <AssociatedComponents components={associatedComponents} moldId={mold.id} onUpdate={handleUpdate} />
           </div>
           <div className="lg:col-span-1">
-            <EventTimeline sourceId={mold.id} />
+            <EventTimeline sourceId={mold.id} onUpdate={handleUpdate} />
           </div>
         </div>
       </div>

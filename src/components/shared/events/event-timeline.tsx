@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -20,6 +21,7 @@ import { useApp } from '@/context/app-context';
 
 interface EventTimelineProps {
   sourceId: string;
+  onUpdate: () => void;
 }
 
 const eventTypeConfig = {
@@ -35,7 +37,7 @@ function getEventTypeStyle(type: MoldEvent['type']) {
   return eventTypeConfig[type] || eventTypeConfig.Altro;
 }
 
-export function EventTimeline({ sourceId }: EventTimelineProps) {
+export function EventTimeline({ sourceId, onUpdate }: EventTimelineProps) {
   const [events, setEvents] = React.useState<MoldEvent[]>([]);
   const [selectedEvent, setSelectedEvent] = React.useState<MoldEvent | null>(null);
   const [isAddSheetOpen, setIsAddSheetOpen] = React.useState(false);
@@ -60,6 +62,7 @@ export function EventTimeline({ sourceId }: EventTimelineProps) {
 
   const handleEventUpdate = () => {
     fetchEvents();
+    onUpdate(); // Propagate update to parent
   }
 
   const closeSheets = () => {
@@ -68,8 +71,12 @@ export function EventTimeline({ sourceId }: EventTimelineProps) {
   }
 
   const handleEventClick = (event: MoldEvent) => {
-    const freshEvent = events.find(e => e.id === event.id);
-    setSelectedEvent(freshEvent || event);
+    // We need to fetch the latest version of the event before opening the sheet
+    // because our local state might be stale
+    getEventsForSource(sourceId).then(freshEvents => {
+      const freshEvent = freshEvents.find(e => e.id === event.id);
+      setSelectedEvent(freshEvent || event);
+    })
   }
 
   return (
@@ -140,7 +147,7 @@ export function EventTimeline({ sourceId }: EventTimelineProps) {
                           </TooltipProvider>
                         )}
                       </div>
-                      {user?.isAdmin && event.costo != null && <p className="text-xs text-muted-foreground">Cost: ${event.costo.toFixed(2)}</p>}
+                      {user?.isAdmin && event.costo != null && <p className="text-xs text-muted-foreground">Cost: €{event.costo.toFixed(2)}</p>}
                   </div>
                 </div>
               )})}

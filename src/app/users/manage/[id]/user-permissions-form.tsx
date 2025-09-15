@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { updateUser, getMachines } from '@/lib/data';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRouter } from 'next/navigation';
+import { getMolds, getComponents } from '@/lib/data';
 
 
 interface UserPermissionsFormProps {
@@ -20,8 +21,10 @@ interface UserPermissionsFormProps {
   allComponents: Component[];
 }
 
-export function UserPermissionsForm({ user, allMolds, allComponents }: UserPermissionsFormProps) {
+export function UserPermissionsForm({ user, allMolds: initialMolds, allComponents: initialComponents }: UserPermissionsFormProps) {
   const [selectedCodes, setSelectedCodes] = React.useState<string[]>(user.allowedCodes || []);
+  const [allMolds, setAllMolds] = React.useState<Mold[]>(initialMolds);
+  const [allComponents, setAllComponents] = React.useState<Component[]>(initialComponents);
   const [allMachines, setAllMachines] = React.useState<Machine[]>([]);
   const [isSaving, setIsSaving] = React.useState(false);
   const { toast } = useToast();
@@ -29,6 +32,8 @@ export function UserPermissionsForm({ user, allMolds, allComponents }: UserPermi
 
   React.useEffect(() => {
     getMachines().then(setAllMachines);
+    getMolds().then(setAllMolds);
+    getComponents().then(setAllComponents);
   }, []);
 
   const handleCheckboxChange = (code: string) => {

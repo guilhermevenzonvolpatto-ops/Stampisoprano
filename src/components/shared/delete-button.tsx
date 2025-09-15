@@ -19,6 +19,7 @@ import {
 import { useApp } from '@/context/app-context';
 import { useToast } from '@/hooks/use-toast';
 import { deleteItem } from '@/app/actions/delete';
+import { useRouter } from 'next/navigation';
 
 interface DeleteButtonProps {
     itemId: string;
@@ -30,6 +31,8 @@ interface DeleteButtonProps {
 export function DeleteButton({ itemId, itemType, itemName, redirectPath }: DeleteButtonProps) {
     const { user, t } = useApp();
     const { toast } = useToast();
+    const router = useRouter();
+
 
     const handleDelete = async () => {
         const result = await deleteItem(itemType, itemId);
@@ -39,6 +42,8 @@ export function DeleteButton({ itemId, itemType, itemName, redirectPath }: Delet
                 title: `${itemType.charAt(0).toUpperCase() + itemType.slice(1)} Archived`,
                 description: `"${itemName}" has been successfully archived.`,
             });
+            router.push(redirectPath);
+            router.refresh();
         } else {
             toast({
                 title: t('error'),

@@ -178,7 +178,7 @@ export const updateMold = async (id: string, updates: Partial<Mold>): Promise<Mo
 };
 
 export const getComponents = async (): Promise<Component[]> => {
-    const q = query(componentsCol, where('isDeleted', '==', false));
+    const q = query(componentsCol, where('isDeleted', '==', false), orderBy('codice'));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(docToComponent);
 }
@@ -453,11 +453,8 @@ export const createEvent = async (eventData: Omit<MoldEvent, 'id' | 'timestamp' 
     
     if (newStatus) {
         let itemRef: any;
-        if (eventData.sourceId.startsWith('ST-')) {
-            itemRef = doc(moldsCol, eventData.sourceId);
-        } else if (eventData.sourceId.startsWith('MAC-')) {
-            itemRef = doc(machinesCol, eventData.sourceId);
-        }
+        const sourceItemCollection = eventData.sourceId.startsWith('ST-') ? moldsCol : machinesCol;
+        itemRef = doc(sourceItemCollection, eventData.sourceId);
 
         if(itemRef) {
             const itemDoc = await getDoc(itemRef);
@@ -494,11 +491,8 @@ export const updateEvent = async (id: string, updates: Partial<MoldEvent>): Prom
 
         if (otherOpenEvents.empty) {
             let itemRef: any;
-             if (updatedEvent.sourceId.startsWith('ST-')) {
-                itemRef = doc(moldsCol, updatedEvent.sourceId);
-            } else if (updatedEvent.sourceId.startsWith('MAC-')) {
-                itemRef = doc(machinesCol, updatedEvent.sourceId);
-            }
+            const sourceItemCollection = updatedEvent.sourceId.startsWith('ST-') ? moldsCol : machinesCol;
+            itemRef = doc(sourceItemCollection, updatedEvent.sourceId);
 
             if(itemRef) {
                 const itemDoc = await getDoc(itemRef);

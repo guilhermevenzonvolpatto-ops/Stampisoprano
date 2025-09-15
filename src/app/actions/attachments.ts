@@ -47,6 +47,10 @@ export async function uploadFileAndCreateAttachment(
         });
 
         revalidatePath(`/${collectionName}/${itemId}`);
+        revalidatePath(`/(molds|components|machines)/${itemId}`);
+        revalidatePath(`/calendar`);
+
+
         return { success: true };
     } catch (error: any) {
         console.error("Error uploading file:", error);
@@ -74,6 +78,9 @@ export async function deleteAttachment(
         });
 
         revalidatePath(`/${collectionName}/${itemId}`);
+        revalidatePath(`/(molds|components|machines)/${itemId}`);
+        revalidatePath(`/calendar`);
+        
         return { success: true };
     } catch (error: any) {
         console.error("Error deleting file from Vercel Blob:", error);
