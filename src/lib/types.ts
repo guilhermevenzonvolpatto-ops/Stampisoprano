@@ -95,6 +95,8 @@ export interface Component {
   customFields?: Record<string, any>;
   attachments?: Attachment[];
   dataRilascio?: string;
+  isAesthetic?: boolean;
+  isFoodContact?: boolean;
 }
 
 export interface Machine {

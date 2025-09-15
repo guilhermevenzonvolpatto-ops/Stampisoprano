@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, FilePenLine } from 'lucide-react';
+import { ChevronLeft, FilePenLine, Check, X } from 'lucide-react';
 import Link from 'next/link';
 import type { Mold, Component } from '@/lib/types';
 import { RestrictedPage } from '@/components/layout/restricted-page';
@@ -23,6 +23,7 @@ import { ComponentChecklist } from './component-checklist';
 import { DeleteButton } from '@/components/shared/delete-button';
 import Header from '@/components/layout/header';
 import { useApp } from '@/context/app-context';
+import { cn } from '@/lib/utils';
 
 export default async function ComponentDetailPage({
   params,
@@ -141,6 +142,14 @@ export default async function ComponentDetailPage({
                         <p className="text-muted-foreground">{component.datiMateriaPrima.codiceMaterialeSpecifico}</p>
                     </div>
                     )}
+                     <div className="flex items-center space-x-2">
+                        {component.isAesthetic ? <Check className="h-5 w-5 text-green-600" /> : <X className="h-5 w-5 text-destructive" />}
+                        <span className={cn("font-medium", !component.isAesthetic && "text-muted-foreground")}>Aesthetic</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        {component.isFoodContact ? <Check className="h-5 w-5 text-green-600" /> : <X className="h-5 w-5 text-destructive" />}
+                        <span className={cn("font-medium", !component.isFoodContact && "text-muted-foreground")}>Food Contact</span>
+                    </div>
                 </CardContent>
                 </Card>
                 

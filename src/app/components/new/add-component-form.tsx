@@ -36,6 +36,8 @@ const formSchema = z.object({
   materiale: z.string().min(1, 'Material is required.'),
   peso: z.coerce.number().positive('Weight must be a positive number.'),
   dataRilascio: z.string().optional(),
+  isAesthetic: z.boolean().default(false).optional(),
+  isFoodContact: z.boolean().default(false).optional(),
   associatedMolds: z.array(z.string()).optional(),
   customFields: z.array(customFieldSchema).optional(),
   injectionTime: z.coerce.number().optional(),
@@ -61,6 +63,8 @@ export function AddComponentForm({ allMolds }: AddComponentFormProps) {
       materiale: '',
       peso: undefined,
       dataRilascio: '',
+      isAesthetic: false,
+      isFoodContact: false,
       associatedMolds: [],
       customFields: [],
       injectionTime: undefined,
@@ -96,6 +100,8 @@ export function AddComponentForm({ allMolds }: AddComponentFormProps) {
         materiale: values.materiale,
         peso: values.peso,
         dataRilascio: values.dataRilascio,
+        isAesthetic: values.isAesthetic,
+        isFoodContact: values.isFoodContact,
         associatedMolds: values.associatedMolds || [],
         customFields: customFieldsObject,
         stampingData: stampingData,
@@ -202,6 +208,46 @@ export function AddComponentForm({ allMolds }: AddComponentFormProps) {
                 </FormItem>
               )}
             />
+            <div className="md:col-span-2 flex items-center space-x-6">
+              <FormField
+                control={form.control}
+                name="isAesthetic"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        Aesthetic Component
+                      </FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="isFoodContact"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        Food Contact
+                      </FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </div>
           </CardContent>
         </Card>
         
@@ -386,5 +432,3 @@ export function AddComponentForm({ allMolds }: AddComponentFormProps) {
     </Form>
   );
 }
-
-    

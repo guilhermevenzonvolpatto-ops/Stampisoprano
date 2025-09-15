@@ -58,7 +58,7 @@ export function ComponentsTable({ data }: ComponentsTableProps) {
   }, [data, searchTerm, user]);
 
   const downloadCSV = () => {
-    const headers = ['codice', 'descrizione', 'materiale', 'peso', 'stato', 'cicliTotali', 'associatedMolds'];
+    const headers = ['codice', 'descrizione', 'materiale', 'peso', 'stato', 'cicliTotali', 'associatedMolds', 'isAesthetic', 'isFoodContact'];
     const csvRows = [headers.join(',')];
 
     for (const component of data) {
@@ -69,7 +69,9 @@ export function ComponentsTable({ data }: ComponentsTableProps) {
             component.peso,
             component.stato,
             component.cicliTotali || 0,
-            `"${(component.associatedMolds || []).join(';')}"` // Join multiple molds with a semicolon
+            `"${(component.associatedMolds || []).join(';')}"`, // Join multiple molds with a semicolon
+            component.isAesthetic ? 'true' : 'false',
+            component.isFoodContact ? 'true' : 'false',
         ];
         csvRows.push(values.join(','));
     }

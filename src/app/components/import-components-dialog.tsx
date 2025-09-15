@@ -68,6 +68,8 @@ export function ImportComponentsDialog({ isOpen, onClose }: ImportComponentsDial
             materiale: materiale,
             peso: parseFloat(peso),
             associatedMolds: row.associatedMolds ? row.associatedMolds.split(';') : [],
+            isAesthetic: ['true', '1', 'yes'].includes(String(row.isAesthetic).toLowerCase()),
+            isFoodContact: ['true', '1', 'yes'].includes(String(row.isFoodContact).toLowerCase()),
           };
 
           const result = await createComponent(componentData);
@@ -111,7 +113,7 @@ export function ImportComponentsDialog({ isOpen, onClose }: ImportComponentsDial
           <DialogTitle>Import Components from CSV</DialogTitle>
           <DialogDescription>
             Upload a CSV file to create new components in bulk. Required columns: 
-            `codice`, `descrizione`, `materiale`, `peso`. Optional: `associatedMolds` (semicolon-separated).
+            `codice`, `descrizione`, `materiale`, `peso`. Optional: `associatedMolds` (semicolon-separated), `isAesthetic`, `isFoodContact`.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-2">

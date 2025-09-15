@@ -554,7 +554,7 @@ export async function createMaintenanceRequest(
       createdAt: serverTimestamp(),
     };
     const docRef = await addDoc(maintenanceRequestsCol, newRequest);
-    return { id: docRef.id, ...data, status: 'pending', createdAt: new Date() } as MaintenanceRequest;
+    return { id: docRef.id, ...data, status: 'pending', createdAt: new Date() };
   } catch (error: any) {
     console.error("Error creating maintenance request:", error);
     return { error: "Failed to create maintenance request." };
