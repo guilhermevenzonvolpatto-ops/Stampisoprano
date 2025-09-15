@@ -58,7 +58,7 @@ export default function LoginPage() {
                 <Label htmlFor="user-code">{t('userCode')}</Label>
                 <Input
                   id="user-code"
-                  placeholder="e.g., guilhermevolp93"
+                  placeholder="e.g., user01"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   required
