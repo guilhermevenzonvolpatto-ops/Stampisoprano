@@ -1,4 +1,5 @@
 
+'use client';
 
 import { getComponent, getMold, getProductionLogsForComponent, getStampingHistoryForComponent } from '@/lib/data';
 import { notFound } from 'next/navigation';
@@ -24,23 +25,47 @@ import { DeleteButton } from '@/components/shared/delete-button';
 import Header from '@/components/layout/header';
 import { useApp } from '@/context/app-context';
 import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
 
-export default async function ComponentDetailPage({
+export default function ComponentDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const component = await getComponent(params.id);
+  const [component, setComponent] = useState<Component | null>(null);
+  const [associatedMolds, setAssociatedMolds] = useState<Mold[]>([]);
+  const [productionLogs, setProductionLogs] = useState<any[]>([]);
+  const [stampingHistory, setStampingHistory] = useState<any[]>([]);
+  
+  useEffect(() => {
+    async function fetchData() {
+      const componentData = await getComponent(params.id);
+      if (!componentData) {
+        notFound();
+      }
+      setComponent(componentData);
+
+      if (componentData) {
+        const productionLogsData = await getProductionLogsForComponent(componentData.id);
+        setProductionLogs(productionLogsData);
+
+        const stampingHistoryData = await getStampingHistoryForComponent(componentData.id);
+        setStampingHistory(stampingHistoryData);
+
+        const moldsData = (await Promise.all(
+          (componentData.associatedMolds || []).map((id) => getMold(id))
+        )).filter(Boolean) as Mold[];
+        setAssociatedMolds(moldsData);
+      }
+    }
+    fetchData();
+  }, [params.id]);
+
+
   if (!component) {
-    notFound();
+    return null; // Or a loading skeleton
   }
 
-  const productionLogs = await getProductionLogsForComponent(component.id);
-  const stampingHistory = await getStampingHistoryForComponent(component.id);
-
-  const associatedMolds = (await Promise.all(
-    (component.associatedMolds || []).map((id) => getMold(id))
-  )).filter(Boolean) as Mold[];
 
   const getStatusClass = (status: string) => {
     switch (status) {
