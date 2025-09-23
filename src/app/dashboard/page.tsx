@@ -3,7 +3,6 @@
 import { StatsCards } from '@/components/dashboard/stats-cards';
 import { UpcomingEvents } from '@/components/dashboard/upcoming-events';
 import { ComponentSearch } from '@/components/dashboard/component-search';
-import { QuickProductionLog } from '@/app/dashboard/quick-production-log';
 import { RestrictedPage } from '@/components/layout/restricted-page';
 import Header from '@/components/layout/header';
 
@@ -21,7 +20,6 @@ export default function DashboardPage() {
                 <UpcomingEvents />
                 <ComponentSearch />
               </div>
-              <QuickProductionLog />
             </div>
           </div>
         </main>
