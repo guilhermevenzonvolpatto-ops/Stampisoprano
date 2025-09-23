@@ -46,7 +46,6 @@ export async function uploadFileAndCreateAttachment(
             attachments: arrayUnion(newAttachment)
         });
 
-        revalidatePath(`/${collectionName}/${itemId}`);
         revalidatePath(`/(molds|components|machines)/${itemId}`);
         revalidatePath(`/calendar`);
 
@@ -66,7 +65,7 @@ export async function deleteAttachment(
 ): Promise<{ success: boolean; error?: string }> {
     const collectionName = itemType === 'event' ? 'events' : `${itemType}s`;
      try {
-        if (attachment.url) {
+        if (attachment.storagePath) {
             await del(attachment.url, {
                 token: process.env.BLOB_READ_WRITE_TOKEN
             });
@@ -77,13 +76,49 @@ export async function deleteAttachment(
             attachments: arrayRemove(attachment)
         });
 
-        revalidatePath(`/${collectionName}/${itemId}`);
         revalidatePath(`/(molds|components|machines)/${itemId}`);
         revalidatePath(`/calendar`);
         
         return { success: true };
     } catch (error: any) {
-        console.error("Error deleting file from Vercel Blob:", error);
+        console.error("Error deleting file:", error);
         return { success: false, error: error.message };
     }
+}
+
+export async function createAttachmentFromUrl(
+  itemId: string,
+  itemType: ItemType,
+  url: string,
+  name?: string
+): Promise<{ success: boolean; error?: string }> {
+  if (!itemId || !itemType || !url) {
+    return { success: false, error: 'Missing required fields.' };
+  }
+
+  const collectionName = itemType === 'event' ? 'events' : `${itemType}s`;
+
+  try {
+    const newAttachment: Attachment = {
+      id: uuidv4(),
+      fileName: name || url,
+      fileType: 'URL',
+      url: url,
+      uploadedAt: new Date().toISOString(),
+      storagePath: null, // Indicate that this is an external link
+    };
+
+    const docRef = doc(db, collectionName, itemId);
+    await updateDoc(docRef, {
+      attachments: arrayUnion(newAttachment),
+    });
+
+    revalidatePath(`/(molds|components|machines)/${itemId}`);
+    revalidatePath('/calendar');
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error creating attachment from URL:', error);
+    return { success: false, error: error.message };
+  }
 }

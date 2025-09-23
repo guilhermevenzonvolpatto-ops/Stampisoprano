@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { UploadCloud, File, FileText, Trash2, Image as ImageIcon, FileArchive, Eye, Loader2 } from 'lucide-react';
+import { UploadCloud, File, FileText, Trash2, Image as ImageIcon, FileArchive, Eye, Loader2, Link as LinkIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { deleteAttachment, uploadFileAndCreateAttachment } from '@/app/actions/attachments';
 import {
@@ -25,6 +25,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { useRouter } from 'next/navigation';
+import { AddUrlAttachmentDialog } from '@/components/shared/add-url-attachment-dialog';
 
 interface MachineAttachmentsProps {
   machine: Machine;
@@ -35,6 +37,7 @@ const getFileIcon = (fileType: string) => {
         case 'PDF': return <FileText className="h-6 w-6 text-red-500" />;
         case 'Image': return <ImageIcon className="h-6 w-6 text-green-500" />;
         case '3D': return <File className="h-6 w-6 text-blue-500" />;
+        case 'URL': return <LinkIcon className="h-6 w-6 text-indigo-500" />;
         default: return <FileArchive className="h-6 w-6 text-gray-500" />;
     }
 }
@@ -42,8 +45,10 @@ const getFileIcon = (fileType: string) => {
 export function MachineAttachments({ machine }: MachineAttachmentsProps) {
   const { user, t } = useApp();
   const { toast } = useToast();
+  const router = useRouter();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = React.useState(false);
+  const [isUrlDialogOpen, setIsUrlDialogOpen] = React.useState(false);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -73,6 +78,7 @@ export function MachineAttachments({ machine }: MachineAttachmentsProps) {
             title: 'Upload Successful',
             description: `"${file.name}" has been attached to the machine.`,
         });
+        router.refresh();
     } else {
         toast({
             title: 'Upload Failed',
@@ -89,6 +95,7 @@ export function MachineAttachments({ machine }: MachineAttachmentsProps) {
         title: 'Attachment Deleted',
         description: `"${attachment.fileName}" has been removed.`,
       });
+      router.refresh();
     } else {
        toast({
         title: 'Error Deleting File',
@@ -101,6 +108,7 @@ export function MachineAttachments({ machine }: MachineAttachmentsProps) {
   const hasAttachments = machine.attachments && machine.attachments.length > 0;
 
   return (
+    <>
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
@@ -110,6 +118,10 @@ export function MachineAttachments({ machine }: MachineAttachmentsProps) {
         <div className="flex items-center gap-2">
             {user?.isAdmin && (
                 <>
+                    <Button variant="outline" onClick={() => setIsUrlDialogOpen(true)}>
+                        <LinkIcon className="mr-2 h-4 w-4" />
+                        Add URL
+                    </Button>
                     <Button variant="outline" onClick={handleUploadClick} disabled={isUploading}>
                         {isUploading ? (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -156,7 +168,7 @@ export function MachineAttachments({ machine }: MachineAttachmentsProps) {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This action will permanently delete the file <span className="font-semibold">{file.fileName}</span> from storage. This cannot be undone.
+                            This action will permanently delete the attachment <span className="font-semibold">{file.fileName}</span>. If this is an uploaded file, it will be removed from storage. This cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -176,5 +188,14 @@ export function MachineAttachments({ machine }: MachineAttachmentsProps) {
         )}
       </CardContent>
     </Card>
+     {user?.isAdmin && (
+      <AddUrlAttachmentDialog 
+        isOpen={isUrlDialogOpen}
+        onClose={() => setIsUrlDialogOpen(false)}
+        itemId={machine.id}
+        itemType='machine'
+      />
+    )}
+    </>
   );
 }

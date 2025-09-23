@@ -13,10 +13,10 @@ export interface User {
 export interface Attachment {
   id: string;
   fileName: string;
-  fileType: '3D' | 'PDF' | 'Image' | 'Document';
+  fileType: '3D' | 'PDF' | 'Image' | 'Document' | 'URL';
   url: string;
   uploadedAt: string;
-  storagePath: string;
+  storagePath: string | null;
 }
 
 export interface ChecklistItem {

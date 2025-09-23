@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -28,10 +29,12 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Loader2, UploadCloud, FileText, Trash2, Image as ImageIcon, FileArchive, File as FileIcon } from 'lucide-react';
+import { Loader2, UploadCloud, FileText, Trash2, Image as ImageIcon, FileArchive, File as FileIcon, Link as LinkIcon } from 'lucide-react';
 import { useApp } from '@/context/app-context';
 import { uploadFileAndCreateAttachment, deleteAttachment } from '@/app/actions/attachments';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { AddUrlAttachmentDialog } from '@/components/shared/add-url-attachment-dialog';
+import { useRouter } from 'next/navigation';
 
 interface EditEventSheetProps {
   event: MoldEvent;
@@ -45,6 +48,7 @@ const getFileIcon = (fileType: string) => {
         case 'PDF': return <FileText className="h-5 w-5 text-red-500" />;
         case 'Image': return <ImageIcon className="h-5 w-5 text-green-500" />;
         case '3D': return <FileIcon className="h-5 w-5 text-blue-500" />;
+        case 'URL': return <LinkIcon className="h-5 w-5 text-indigo-500" />;
         default: return <FileArchive className="h-5 w-5 text-gray-500" />;
     }
 }
@@ -52,11 +56,13 @@ const getFileIcon = (fileType: string) => {
 export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSheetProps) {
   const { toast } = useToast();
   const { user } = useApp();
+  const router = useRouter();
   const [description, setDescription] = React.useState(event.descrizione);
   const [cost, setCost] = React.useState(event.costo?.toString() || '');
   const [estimatedEndDate, setEstimatedEndDate] = React.useState(event.estimatedEndDate)
   const [isSaving, setIsSaving] = React.useState(false);
   const [isUploading, setIsUploading] = React.useState(false);
+  const [isUrlDialogOpen, setIsUrlDialogOpen] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const isClosed = event.status === 'Chiuso';
@@ -140,6 +146,7 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
     if (result.success) {
       toast({ title: 'Upload Successful' });
       onUpdate(); 
+      router.refresh();
     } else {
       toast({ title: 'Upload Failed', description: result.error, variant: 'destructive' });
     }
@@ -150,12 +157,14 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
     if (result.success) {
       toast({ title: 'Attachment Deleted' });
       onUpdate();
+      router.refresh();
     } else {
       toast({ title: 'Error Deleting File', description: result.error, variant: 'destructive' });
     }
   };
 
   return (
+    <>
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="sm:max-w-xl flex flex-col">
         <SheetHeader>
@@ -208,10 +217,16 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
             <div className="space-y-2 pt-2">
                 <div className="flex justify-between items-center">
                     <Label>Attachments</Label>
-                    <Button variant="outline" size="sm" onClick={handleUploadClick} disabled={isUploading}>
-                       {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
-                       Upload
-                    </Button>
+                    <div className='flex items-center gap-2'>
+                       <Button variant="outline" size="sm" onClick={() => setIsUrlDialogOpen(true)}>
+                            <LinkIcon className="mr-2 h-4 w-4" />
+                            Add URL
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={handleUploadClick} disabled={isUploading}>
+                          {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
+                          Upload
+                        </Button>
+                    </div>
                      <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
                 </div>
                 <div className="rounded-md border p-2 min-h-[6rem]">
@@ -274,5 +289,14 @@ export function EditEventSheet({ event, isOpen, onClose, onUpdate }: EditEventSh
         </SheetFooter>
       </SheetContent>
     </Sheet>
+    {user?.isAdmin && (
+      <AddUrlAttachmentDialog 
+        isOpen={isUrlDialogOpen}
+        onClose={() => setIsUrlDialogOpen(false)}
+        itemId={event.id}
+        itemType='event'
+      />
+    )}
+    </>
   );
 }
